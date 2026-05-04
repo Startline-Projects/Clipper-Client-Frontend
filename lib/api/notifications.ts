@@ -9,7 +9,7 @@ const NotificationSchema = z.object({
   type: NotificationType,
   title: z.string(),
   body: z.string(),
-  data: z.record(z.unknown()),
+  data: z.record(z.string(), z.unknown()),
   isRead: z.boolean(),
   bookingId: z.string().nullable(),
   recurringBookingId: z.string().nullable(),

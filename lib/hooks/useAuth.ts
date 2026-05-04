@@ -2,13 +2,24 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/lib/stores/auth.store';
 import { invalidations } from './invalidations';
 import * as authApi from '@/lib/api/auth';
+import { updateProfile } from '@/lib/api/profile';
+
+interface RegisterInput extends authApi.RegisterBody {
+  name?: string;
+}
 
 export function useRegister() {
   return useMutation({
-    mutationFn: (body: authApi.RegisterBody) => authApi.register(body),
-    onSuccess: async (res) => {
+    mutationFn: async ({ name, ...body }: RegisterInput) => {
+      const tokens = await authApi.register(body);
+      return { tokens, name };
+    },
+    onSuccess: async ({ tokens, name }) => {
       const { setTokens, markLaunched } = useAuthStore.getState();
-      await setTokens(res.accessToken, res.refreshToken);
+      await setTokens(tokens.accessToken, tokens.refreshToken);
+      if (name) {
+        try { await updateProfile({ name }); } catch {}
+      }
       await markLaunched();
     },
   });

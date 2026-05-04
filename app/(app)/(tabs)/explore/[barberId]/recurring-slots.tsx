@@ -1,0 +1,285 @@
+import { useState } from 'react';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Header from '@/components/ui/Header';
+import Btn from '@/components/ui/Btn';
+import Card from '@/components/ui/Card';
+import Icon from '@/components/ui/Icon';
+import Badge from '@/components/ui/Badge';
+import LoadingSpinner from '@/components/feedback/LoadingSpinner';
+import { useRecurringSlots, useCreateRecurring } from '@/lib/hooks/useRecurring';
+import { useColors } from '@/lib/theme/colors';
+import { formatTime, formatCurrency, formatDuration } from '@/lib/utils/format';
+
+const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAY_NAMES_LONG = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
+
+export default function RecurringSlotsScreen() {
+  const router = useRouter();
+  const colors = useColors();
+  const { barberId, serviceIds: serviceIdsParam } = useLocalSearchParams<{
+    barberId: string;
+    serviceIds: string;
+  }>();
+  const serviceIds = serviceIdsParam?.split(',').filter(Boolean) ?? [];
+
+  const [dayOfWeek, setDayOfWeek] = useState<number | undefined>(undefined);
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [frequency, setFrequency] = useState<'weekly' | 'biweekly' | null>(null);
+
+  const { data: slotData, isLoading: slotsLoading } = useRecurringSlots(
+    barberId,
+    serviceIds,
+    dayOfWeek,
+  );
+  const create = useCreateRecurring();
+
+  const canSubmit =
+    dayOfWeek !== undefined && selectedSlot && frequency && barberId;
+
+  const handleSubmit = () => {
+    if (!canSubmit || create.isPending) return;
+    create.mutate(
+      {
+        barberId,
+        services: serviceIds.map((id) => ({
+          barberServiceId: id,
+          bookingType: 'regular' as const,
+        })),
+        dayOfWeek: dayOfWeek!,
+        slotTime: selectedSlot!,
+        frequency: frequency!,
+      },
+      {
+        onSuccess: () => {
+          Alert.alert(
+            'Request Submitted',
+            'Your recurring booking request has been sent. You\'ll be notified when your barber responds.',
+            [
+              {
+                text: 'View Bookings',
+                onPress: () => router.replace('/(app)/(tabs)/bookings'),
+              },
+              {
+                text: 'Back to Home',
+                onPress: () => router.replace('/(app)/(tabs)/home'),
+              },
+            ],
+          );
+        },
+        onError: () =>
+          Alert.alert('Failed', 'Could not submit request. Try again.'),
+      },
+    );
+  };
+
+  return (
+    <SafeAreaView className="flex-1 bg-bg" edges={['top']}>
+      <View className="px-5">
+        <Header title="Recurring Booking" onBack={() => router.back()} />
+      </View>
+
+      <ScrollView className="flex-1 px-5" contentContainerClassName="pb-8">
+        {/* Step 1: Day of week */}
+        <Text className="text-[22px] font-bold text-ink tracking-[-0.5px] mt-1 mb-[2px]">
+          Choose a day
+        </Text>
+        <Text className="text-[14px] text-secondary mb-4">
+          Pick which day of the week you want your recurring slot.
+        </Text>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerClassName="gap-[10px] pb-2"
+          className="mb-6"
+        >
+          {DAY_ORDER.map((dow) => {
+            const isSel = dayOfWeek === dow;
+            return (
+              <Pressable
+                key={dow}
+                onPress={() => {
+                  setDayOfWeek(dow);
+                  setSelectedSlot(null);
+                  setFrequency(null);
+                }}
+                style={{
+                  borderWidth: isSel ? 2 : 1,
+                  borderColor: isSel ? '#C47F17' : colors.separatorOpaque,
+                  backgroundColor: isSel ? '#C47F17' : colors.card,
+                  paddingVertical: 10,
+                  paddingHorizontal: 16,
+                  borderRadius: 20,
+                  alignItems: 'center',
+                  minWidth: 56,
+                }}
+                className="active:opacity-70"
+              >
+                <Text
+                  style={{ color: isSel ? '#fff' : colors.ink }}
+                  className="text-[13px] font-bold"
+                >
+                  {DAY_NAMES_SHORT[dow]}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+
+        {/* Step 2: Time slot */}
+        {dayOfWeek !== undefined && (
+          <>
+            <Text className="text-[18px] font-bold text-ink tracking-[-0.3px] mb-[2px]">
+              Pick a time
+            </Text>
+            {slotsLoading ? (
+              <LoadingSpinner size="small" />
+            ) : !slotData || !slotData.recurringAvailable ? (
+              <Card className="p-5 items-center mb-6" style={{ backgroundColor: colors.bgWarm }}>
+                <Icon name="calendarOff" size={24} color={colors.tertiary} />
+                <Text className="text-[13px] font-medium text-secondary mt-2">
+                  Not available for recurring on {DAY_NAMES_LONG[dayOfWeek]}
+                </Text>
+              </Card>
+            ) : (
+              <>
+                <Text className="text-[14px] text-secondary mb-4">
+                  {DAY_NAMES_LONG[dayOfWeek]} ·{' '}
+                  {formatDuration(slotData.totalDurationMinutes)}
+                  {slotData.recurringPriceUsd
+                    ? ` · ${formatCurrency(slotData.recurringPriceUsd)}/session`
+                    : ''}
+                </Text>
+
+                <View className="gap-2 mb-6">
+                  {slotData.slots.map((slot) => {
+                    const isSel = selectedSlot === slot.time;
+                    return (
+                      <Pressable
+                        key={slot.time}
+                        onPress={() => slot.available && setSelectedSlot(slot.time)}
+                        disabled={!slot.available}
+                        style={{
+                          backgroundColor: isSel
+                            ? '#C47F17'
+                            : !slot.available
+                              ? colors.bgWarm
+                              : colors.card,
+                          borderWidth: isSel ? 0 : 1,
+                          borderColor: colors.separatorOpaque,
+                          opacity: slot.available ? 1 : 0.45,
+                        }}
+                        className="flex-row items-center justify-between p-[14px] rounded-lg active:opacity-70"
+                      >
+                        <View className="flex-row items-center gap-[10px]">
+                          <Icon
+                            name="clock"
+                            size={16}
+                            color={
+                              isSel
+                                ? '#fff'
+                                : slot.available
+                                  ? colors.secondary
+                                  : colors.tertiary
+                            }
+                          />
+                          <Text
+                            style={{
+                              color: isSel
+                                ? '#fff'
+                                : slot.available
+                                  ? colors.ink
+                                  : colors.tertiary,
+                            }}
+                            className="text-[15px] font-medium"
+                          >
+                            {formatTime(slot.time)}
+                          </Text>
+                        </View>
+                        {!slot.available && (
+                          <Badge label="Taken" color={colors.tertiary} bg={colors.bgMuted} />
+                        )}
+                        {isSel && <Icon name="check" size={18} color="#fff" />}
+                      </Pressable>
+                    );
+                  })}
+                </View>
+
+                {/* Step 3: Frequency */}
+                {selectedSlot && (
+                  <>
+                    <Text className="text-[18px] font-bold text-ink tracking-[-0.3px] mb-[2px]">
+                      How often?
+                    </Text>
+                    <Text className="text-[14px] text-secondary mb-4">
+                      {DAY_NAMES_LONG[dayOfWeek]} · {formatTime(selectedSlot)}
+                    </Text>
+
+                    <View className="gap-[10px] mb-6">
+                      {(['weekly', 'biweekly'] as const).map((f) => {
+                        const allowed =
+                          slotData.recurringFrequencyOptions.includes(f);
+                        const isSel = frequency === f;
+                        return (
+                          <Pressable
+                            key={f}
+                            onPress={() => allowed && setFrequency(f)}
+                            disabled={!allowed}
+                            style={{
+                              borderWidth: isSel ? 2 : 1,
+                              borderColor: isSel ? '#C47F17' : colors.separatorOpaque,
+                              backgroundColor: isSel ? '#FFF8ED' : colors.card,
+                              opacity: allowed ? 1 : 0.4,
+                            }}
+                            className="p-[18px] rounded-lg active:opacity-70"
+                          >
+                            <View className="flex-row justify-between items-center">
+                              <View>
+                                <Text
+                                  style={{ color: isSel ? '#C47F17' : colors.ink }}
+                                  className="text-[16px] font-semibold"
+                                >
+                                  {f === 'weekly' ? 'Every week' : 'Every 2 weeks'}
+                                </Text>
+                                <Text className="text-[12px] text-secondary mt-1">
+                                  {f === 'weekly'
+                                    ? '4 appointments per month'
+                                    : '2 appointments per month'}
+                                </Text>
+                              </View>
+                              {isSel && (
+                                <Icon name="check" size={20} color="#C47F17" />
+                              )}
+                            </View>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </>
+                )}
+              </>
+            )}
+          </>
+        )}
+
+        <Btn
+          label={create.isPending ? 'Submitting...' : 'Submit Request'}
+          full
+          onPress={handleSubmit}
+          disabled={!canSubmit || create.isPending}
+        />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}

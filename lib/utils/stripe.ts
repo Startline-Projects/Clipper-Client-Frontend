@@ -1,43 +1,29 @@
-import {
-  initPaymentSheet,
-  presentPaymentSheet,
-  confirmPayment as stripeConfirmPayment,
-} from '@stripe/stripe-react-native';
-
 export const STRIPE_PUBLISHABLE_KEY =
   process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '';
 
 export async function collectPaymentMethod(): Promise<{
   paymentMethodId: string;
 } | null> {
-  const { error: initError } = await initPaymentSheet({
-    merchantDisplayName: 'Clipper',
-    paymentIntentClientSecret: undefined,
-    setupIntentClientSecret: undefined,
-    customerId: undefined,
-    customerEphemeralKeySecret: undefined,
-    allowsDelayedPaymentMethods: false,
+  const { createPaymentMethod } = await import('@stripe/stripe-react-native');
+  const { paymentMethod, error } = await createPaymentMethod({
+    paymentMethodType: 'Card',
   });
 
-  if (initError) {
-    console.warn('[stripe] initPaymentSheet error:', initError);
+  if (error) {
+    if (error.message?.includes('cancel') || error.message?.includes('Cancel')) return null;
+    console.warn('[stripe] createPaymentMethod error:', error);
     return null;
   }
 
-  const { error: presentError } = await presentPaymentSheet();
+  if (!paymentMethod?.id) return null;
 
-  if (presentError) {
-    if (presentError.code === 'Canceled') return null;
-    console.warn('[stripe] presentPaymentSheet error:', presentError);
-    return null;
-  }
-
-  return null;
+  return { paymentMethodId: paymentMethod.id };
 }
 
 export async function confirmPayment(
   clientSecret: string,
 ): Promise<{ success: boolean; error?: string }> {
+  const { confirmPayment: stripeConfirmPayment } = await import('@stripe/stripe-react-native');
   const { error } = await stripeConfirmPayment(clientSecret, {
     paymentMethodType: 'Card',
   });

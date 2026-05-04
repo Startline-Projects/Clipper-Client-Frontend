@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getToken, setToken, clearTokens } from '@/lib/utils/secure-store';
-import { unregisterPushToken } from '@/lib/utils/push-notifications';
 
 const HAS_LAUNCHED_KEY = 'clipper_has_launched';
 
@@ -48,17 +47,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setPushToken: (token) => set({ pushToken: token }),
 
   markLaunched: async () => {
-    await AsyncStorage.setItem(HAS_LAUNCHED_KEY, '1');
+    try {
+      await AsyncStorage.setItem(HAS_LAUNCHED_KEY, '1');
+    } catch {}
     set({ hasLaunched: true });
   },
 
   hydrate: async () => {
     try {
-      const [accessToken, refreshToken, launched] = await Promise.all([
+      const [accessToken, refreshToken] = await Promise.all([
         getToken('accessToken'),
         getToken('refreshToken'),
-        AsyncStorage.getItem(HAS_LAUNCHED_KEY),
       ]);
+      let launched: string | null = null;
+      try {
+        launched = await AsyncStorage.getItem(HAS_LAUNCHED_KEY);
+      } catch {}
       set({ accessToken, refreshToken, hasLaunched: launched === '1' });
     } finally {
       set({ isHydrated: true });
@@ -68,6 +72,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: async () => {
     const { pushToken } = get();
     if (pushToken) {
+      const { unregisterPushToken } = await import('@/lib/utils/push-notifications');
       await unregisterPushToken(pushToken);
     }
     await clearTokens();

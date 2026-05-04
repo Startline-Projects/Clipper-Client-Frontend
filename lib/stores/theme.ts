@@ -1,10 +1,25 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { z } from 'zod';
 import { ThemePreference } from '@/lib/schemas/enums';
 
 type ThemePref = z.infer<typeof ThemePreference>;
+
+const safeStorage: StateStorage = {
+  getItem: async (name) => {
+    try { return await AsyncStorage.getItem(name); }
+    catch { return null; }
+  },
+  setItem: async (name, value) => {
+    try { await AsyncStorage.setItem(name, value); }
+    catch {}
+  },
+  removeItem: async (name) => {
+    try { await AsyncStorage.removeItem(name); }
+    catch {}
+  },
+};
 
 interface ThemeState {
   themePreference: ThemePref;
@@ -24,7 +39,7 @@ export const useThemeStore = create<ThemeState>()(
     }),
     {
       name: 'clipper_theme_preference',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => safeStorage),
       partialize: (s) => ({ themePreference: s.themePreference }),
       onRehydrateStorage: () => () => {
         useThemeStore.setState({ hasHydrated: true });

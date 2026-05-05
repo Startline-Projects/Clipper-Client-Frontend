@@ -52,7 +52,20 @@ export default function ProfileScreen() {
     ]);
   };
 
-  if (isLoading || !profile) return <LoadingSpinner />;
+  if (isLoading) return <LoadingSpinner />;
+
+  if (!profile) {
+    return (
+      <SafeAreaView className="flex-1 bg-bg items-center justify-center px-8" edges={['top']}>
+        <Text className="text-[16px] font-semibold text-ink text-center mb-1">
+          Couldn't load profile
+        </Text>
+        <Text className="text-[14px] text-tertiary text-center leading-[20px]">
+          Check your connection and try again.
+        </Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={['top']}>

@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Alert, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { CardField, type CardFieldInput } from '@stripe/stripe-react-native';
 import Header from '@/components/ui/Header';
 import Btn from '@/components/ui/Btn';
 import Card from '@/components/ui/Card';
@@ -24,6 +26,8 @@ export default function SubscriptionScreen() {
   const switchPlan = useSwitchPlan();
   const cancelSub = useCancelSubscription();
   const replaceCard = useReplacePaymentMethod();
+  const [showCardField, setShowCardField] = useState(false);
+  const [cardComplete, setCardComplete] = useState(false);
 
   if (isLoading || !sub) return <LoadingSpinner />;
 
@@ -71,12 +75,21 @@ export default function SubscriptionScreen() {
   };
 
   const handleUpdateCard = async () => {
+    if (!showCardField) {
+      setShowCardField(true);
+      return;
+    }
+    if (!cardComplete) return;
     const result = await collectPaymentMethod();
     if (!result) return;
     replaceCard.mutate(
       { paymentMethodId: result.paymentMethodId },
       {
-        onSuccess: () => Alert.alert('Updated', 'Payment method updated.'),
+        onSuccess: () => {
+          Alert.alert('Updated', 'Payment method updated.');
+          setShowCardField(false);
+          setCardComplete(false);
+        },
         onError: () =>
           Alert.alert('Failed', 'Could not update card. Try again.'),
       },
@@ -171,13 +184,32 @@ export default function SubscriptionScreen() {
                   disabled={switchPlan.isPending}
                 />
               )}
+              {showCardField && (
+                <CardField
+                  postalCodeEnabled={false}
+                  placeholders={{ number: '4242 4242 4242 4242' }}
+                  cardStyle={{
+                    backgroundColor: colors.surface,
+                    textColor: colors.ink,
+                    placeholderColor: colors.tertiary,
+                    borderColor: colors.separatorOpaque,
+                    borderWidth: 1.5,
+                    borderRadius: 16,
+                    fontSize: 15,
+                  }}
+                  style={{ width: '100%', height: 50 }}
+                  onCardChange={(details: CardFieldInput.Details) => {
+                    setCardComplete(details.complete);
+                  }}
+                />
+              )}
               <Btn
-                label={replaceCard.isPending ? 'Updating...' : 'Update Payment Method'}
+                label={replaceCard.isPending ? 'Updating...' : showCardField ? 'Save Card' : 'Update Payment Method'}
                 variant="secondary"
                 full
                 icon="card"
                 onPress={handleUpdateCard}
-                disabled={replaceCard.isPending}
+                disabled={replaceCard.isPending || (showCardField && !cardComplete)}
               />
               <Btn
                 label="Cancel Subscription"
@@ -190,13 +222,34 @@ export default function SubscriptionScreen() {
           )}
 
           {isPastDue && (
-            <Btn
-              label={replaceCard.isPending ? 'Updating...' : 'Update Payment Method'}
-              full
-              icon="card"
-              onPress={handleUpdateCard}
-              disabled={replaceCard.isPending}
-            />
+            <>
+              {showCardField && (
+                <CardField
+                  postalCodeEnabled={false}
+                  placeholders={{ number: '4242 4242 4242 4242' }}
+                  cardStyle={{
+                    backgroundColor: colors.surface,
+                    textColor: colors.ink,
+                    placeholderColor: colors.tertiary,
+                    borderColor: colors.separatorOpaque,
+                    borderWidth: 1.5,
+                    borderRadius: 16,
+                    fontSize: 15,
+                  }}
+                  style={{ width: '100%', height: 50 }}
+                  onCardChange={(details: CardFieldInput.Details) => {
+                    setCardComplete(details.complete);
+                  }}
+                />
+              )}
+              <Btn
+                label={replaceCard.isPending ? 'Updating...' : showCardField ? 'Save Card' : 'Update Payment Method'}
+                full
+                icon="card"
+                onPress={handleUpdateCard}
+                disabled={replaceCard.isPending || (showCardField && !cardComplete)}
+              />
+            </>
           )}
         </View>
       </ScrollView>

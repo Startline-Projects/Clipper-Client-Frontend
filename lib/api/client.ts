@@ -7,9 +7,9 @@ declare module 'axios' {
   }
 }
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
 if (!BASE_URL) {
-  throw new Error('EXPO_PUBLIC_API_URL is not set');
+  console.error('EXPO_PUBLIC_API_URL is not set — API calls will fail');
 }
 
 export const apiClient = axios.create({

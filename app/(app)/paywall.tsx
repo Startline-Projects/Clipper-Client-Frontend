@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, Image, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { CardField, type CardFieldInput } from '@stripe/stripe-react-native';
 import Header from '@/components/ui/Header';
 import Btn from '@/components/ui/Btn';
 import Icon from '@/components/ui/Icon';
@@ -41,6 +42,7 @@ export default function PaywallScreen() {
   const { refetch: refetchSub } = useSubscription();
   const [plan, setPlan] = useState<'monthly' | 'yearly' | null>(null);
   const [loading, setLoading] = useState(false);
+  const [cardComplete, setCardComplete] = useState(false);
 
   const handleSubscribe = async () => {
     if (!plan || loading) return;
@@ -101,19 +103,10 @@ export default function PaywallScreen() {
         contentContainerClassName="pb-8"
       >
         <View className="items-center mb-6">
-          <View
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: 18,
-              backgroundColor: colors.brandPale,
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: 12,
-            }}
-          >
-            <Icon name="scissors" size={28} color={colors.brand} />
-          </View>
+          <Image
+            source={require('@/assets/icon.png')}
+            className="w-[64px] h-[64px] rounded-[18px] mb-3"
+          />
           <Text className="text-[24px] font-bold text-ink tracking-[-0.5px] text-center">
             Unlock Clipper
           </Text>
@@ -151,12 +144,35 @@ export default function PaywallScreen() {
 
         <PlanSelector selected={plan} onSelect={setPlan} />
 
-        <View className="mt-6">
+        <View className="mt-6 mb-2">
+          <Text className="text-[13px] font-semibold text-secondary mb-[6px] tracking-[-0.1px]">
+            Payment Details
+          </Text>
+          <CardField
+            postalCodeEnabled={false}
+            placeholders={{ number: '4242 4242 4242 4242' }}
+            cardStyle={{
+              backgroundColor: colors.surface,
+              textColor: colors.ink,
+              placeholderColor: colors.tertiary,
+              borderColor: colors.separatorOpaque,
+              borderWidth: 1.5,
+              borderRadius: 16,
+              fontSize: 15,
+            }}
+            style={{ width: '100%', height: 50 }}
+            onCardChange={(details: CardFieldInput.Details) => {
+              setCardComplete(details.complete);
+            }}
+          />
+        </View>
+
+        <View className="mt-4">
           <Btn
             label={loading ? 'Processing...' : 'Subscribe'}
             full
             onPress={handleSubscribe}
-            disabled={!plan || loading}
+            disabled={!plan || !cardComplete || loading}
           />
         </View>
 

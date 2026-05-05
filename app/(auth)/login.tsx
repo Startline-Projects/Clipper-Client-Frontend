@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import {
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -11,8 +12,6 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import Icon from '@/components/ui/Icon';
 import Btn from '@/components/ui/Btn';
 import TextField from '@/components/forms/TextField';
 import Header from '@/components/ui/Header';
@@ -71,16 +70,10 @@ export default function LoginScreen() {
           <Header title="" onBack={() => router.back()} />
 
           <View className="items-center mt-2 mb-7">
-            <View className="w-14 h-14 rounded-[18px] overflow-hidden mb-[14px]">
-              <LinearGradient
-                colors={['#0A0A0A', '#2C2C2E']}
-                start={{ x: 0.1, y: 0 }}
-                end={{ x: 0.9, y: 1 }}
-                style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Icon name="scissors" size={26} color="#FFF" />
-              </LinearGradient>
-            </View>
+            <Image
+              source={require('@/assets/icon.png')}
+              className="w-14 h-14 rounded-[18px] mb-[14px]"
+            />
             <Text className="text-[26px] font-extrabold text-ink tracking-[-0.6px]">
               Welcome back
             </Text>

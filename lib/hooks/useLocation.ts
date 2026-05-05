@@ -22,21 +22,22 @@ export function useLocation() {
   const fetchLocation = useCallback(async () => {
     setState((s) => ({ ...s, loading: true, error: null }));
 
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      if (mounted.current) {
-        setState((s) => ({
-          ...s,
-          loading: false,
-          error: 'Location permission denied',
-        }));
-      }
-      return;
-    }
-
     try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        if (mounted.current) {
+          setState((s) => ({
+            ...s,
+            loading: false,
+            error: 'Location permission denied',
+          }));
+        }
+        return;
+      }
+
       const loc = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
+        timeInterval: 10_000,
       });
       cachedCoords = {
         latitude: loc.coords.latitude,
@@ -51,13 +52,30 @@ export function useLocation() {
         });
       }
     } catch (err) {
-      if (mounted.current) {
-        setState((s) => ({
-          ...s,
-          loading: false,
-          error: 'Failed to get location',
-        }));
-      }
+      if (!mounted.current) return;
+
+      try {
+        const last = await Location.getLastKnownPositionAsync();
+        if (last) {
+          cachedCoords = {
+            latitude: last.coords.latitude,
+            longitude: last.coords.longitude,
+          };
+          setState({
+            latitude: cachedCoords.latitude,
+            longitude: cachedCoords.longitude,
+            loading: false,
+            error: null,
+          });
+          return;
+        }
+      } catch {}
+
+      setState((s) => ({
+        ...s,
+        loading: false,
+        error: 'Failed to get location',
+      }));
     }
   }, []);
 

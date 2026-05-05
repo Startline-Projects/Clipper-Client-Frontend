@@ -1,16 +1,20 @@
+import {
+  createPaymentMethod,
+  confirmPayment as stripeConfirmPayment,
+} from '@stripe/stripe-react-native';
+
 export const STRIPE_PUBLISHABLE_KEY =
   process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '';
 
 export async function collectPaymentMethod(): Promise<{
   paymentMethodId: string;
 } | null> {
-  const { createPaymentMethod } = await import('@stripe/stripe-react-native');
   const { paymentMethod, error } = await createPaymentMethod({
     paymentMethodType: 'Card',
   });
 
   if (error) {
-    if (error.message?.includes('cancel') || error.message?.includes('Cancel')) return null;
+    if (error.code === 'Canceled') return null;
     console.warn('[stripe] createPaymentMethod error:', error);
     return null;
   }
@@ -23,7 +27,6 @@ export async function collectPaymentMethod(): Promise<{
 export async function confirmPayment(
   clientSecret: string,
 ): Promise<{ success: boolean; error?: string }> {
-  const { confirmPayment: stripeConfirmPayment } = await import('@stripe/stripe-react-native');
   const { error } = await stripeConfirmPayment(clientSecret, {
     paymentMethodType: 'Card',
   });

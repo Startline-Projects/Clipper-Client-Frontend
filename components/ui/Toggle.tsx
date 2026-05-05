@@ -1,8 +1,4 @@
-import { Pressable, Text, View } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  withTiming,
-} from 'react-native-reanimated';
+import { Pressable, Switch, Text, View } from 'react-native';
 
 interface ToggleProps {
   on: boolean;
@@ -11,22 +7,7 @@ interface ToggleProps {
   sub?: string;
 }
 
-const TRACK_W = 50;
-const TRACK_H = 30;
-const THUMB = 26;
-const TIMING = { duration: 250 };
-
 export default function Toggle({ on, onToggle, label, sub }: ToggleProps) {
-  const thumbStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: withTiming(on ? TRACK_W - THUMB - 2 : 2, TIMING) },
-    ],
-  }));
-
-  const trackStyle = useAnimatedStyle(() => ({
-    backgroundColor: withTiming(on ? '#30D158' : '#E5E5EA', TIMING),
-  }));
-
   return (
     <Pressable
       onPress={onToggle}
@@ -43,29 +24,12 @@ export default function Toggle({ on, onToggle, label, sub }: ToggleProps) {
         )}
       </View>
 
-      <Animated.View
-        style={[
-          {
-            width: TRACK_W,
-            height: TRACK_H,
-            borderRadius: TRACK_H / 2,
-          },
-          trackStyle,
-        ]}
-        className="shrink-0 justify-center"
-      >
-        <Animated.View
-          style={[
-            {
-              width: THUMB,
-              height: THUMB,
-              borderRadius: THUMB / 2,
-            },
-            thumbStyle,
-          ]}
-          className="bg-white shadow-sm shadow-black/[0.12]"
-        />
-      </Animated.View>
+      <Switch
+        value={on}
+        onValueChange={onToggle}
+        trackColor={{ false: '#E5E5EA', true: '#30D158' }}
+        thumbColor="#FFFFFF"
+      />
     </Pressable>
   );
 }

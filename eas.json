@@ -6,13 +6,31 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api-production-efaa.up.railway.app",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://qnbaaifvjrphqpictqux.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFuYmFhaWZ2anJwaHFwaWN0cXV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MDkxMTAsImV4cCI6MjA5MTM4NTExMH0.T_UFkpjz0wMRVH5Zzq9S1pi0VqW9cMVG-bUnALORZMw",
+        "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51TRE5FERKC62DBzXpBt6QkUK7ruHYf8JF6bFJ4P0QbJ75cdvFKw8YgMMbTJxtobqKL0bBAEUNK3BMoLSHWAwU87l00PmxOdxeD"
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api-production-efaa.up.railway.app",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://qnbaaifvjrphqpictqux.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFuYmFhaWZ2anJwaHFwaWN0cXV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MDkxMTAsImV4cCI6MjA5MTM4NTExMH0.T_UFkpjz0wMRVH5Zzq9S1pi0VqW9cMVG-bUnALORZMw",
+        "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51TRE5FERKC62DBzXpBt6QkUK7ruHYf8JF6bFJ4P0QbJ75cdvFKw8YgMMbTJxtobqKL0bBAEUNK3BMoLSHWAwU87l00PmxOdxeD"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api-production-efaa.up.railway.app",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://qnbaaifvjrphqpictqux.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFuYmFhaWZ2anJwaHFwaWN0cXV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MDkxMTAsImV4cCI6MjA5MTM4NTExMH0.T_UFkpjz0wMRVH5Zzq9S1pi0VqW9cMVG-bUnALORZMw",
+        "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51TRE5FERKC62DBzXpBt6QkUK7ruHYf8JF6bFJ4P0QbJ75cdvFKw8YgMMbTJxtobqKL0bBAEUNK3BMoLSHWAwU87l00PmxOdxeD"
+      }
     }
   },
   "submit": {

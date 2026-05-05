@@ -1,13 +1,12 @@
 import './global.css';
 import { useEffect } from 'react';
-import { View } from 'react-native';
+import { Appearance, View } from 'react-native';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { StripeProvider } from '@stripe/stripe-react-native';
-import { useColorScheme } from 'nativewind';
 import { queryClient } from '@/lib/utils/query-client';
 import { useAuthStore } from '@/lib/stores/auth.store';
 import { useTheme } from '@/lib/hooks/useTheme';
@@ -42,11 +41,10 @@ function AuthRedirect() {
 
 function RootInner() {
   const theme = useTheme();
-  const { setColorScheme } = useColorScheme();
 
   useEffect(() => {
-    setColorScheme(theme);
-  }, [theme, setColorScheme]);
+    Appearance.setColorScheme(theme);
+  }, [theme]);
 
   return (
     <View className="flex-1 bg-bg">

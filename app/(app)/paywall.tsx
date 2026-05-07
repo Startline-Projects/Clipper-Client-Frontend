@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Image, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CardField, type CardFieldInput } from '@stripe/stripe-react-native';
 import Header from '@/components/ui/Header';
@@ -11,6 +12,7 @@ import { useCreateSubscription, useSubscription } from '@/lib/hooks/useSubscript
 import { useColors } from '@/lib/theme/colors';
 import { collectPaymentMethod, confirmPayment } from '@/lib/utils/stripe';
 import { showSuccessToast, showErrorToast } from '@/lib/feedback/toast';
+import { queryKeys } from '@/lib/hooks/queryKeys';
 import type { IconName } from '@/components/ui/Icon';
 
 const VALUE_PROPS: { icon: IconName; title: string; sub: string }[] = [
@@ -39,6 +41,7 @@ const VALUE_PROPS: { icon: IconName; title: string; sub: string }[] = [
 export default function PaywallScreen() {
   const router = useRouter();
   const colors = useColors();
+  const qc = useQueryClient();
   const createSub = useCreateSubscription();
   const { refetch: refetchSub } = useSubscription();
   const [plan, setPlan] = useState<'monthly' | 'yearly' | null>(null);
@@ -70,10 +73,18 @@ export default function PaywallScreen() {
         }
       }
 
+      let confirmedSub = null;
       for (let i = 0; i < 10; i++) {
         const { data: subState } = await refetchSub();
-        if (subState?.status === 'active') break;
+        if (subState?.status === 'active') {
+          confirmedSub = subState;
+          break;
+        }
         await new Promise((r) => setTimeout(r, 1500));
+      }
+
+      if (confirmedSub) {
+        qc.setQueryData(queryKeys.subscription.me(), confirmedSub);
       }
 
       showSuccessToast('Welcome to Clipper!', 'Subscription active');

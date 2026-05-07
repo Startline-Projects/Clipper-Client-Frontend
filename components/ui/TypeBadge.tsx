@@ -15,7 +15,12 @@ export default function TypeBadge({ type }: TypeBadgeProps) {
     recurring: [colors.blue, 'Recurring'],
   };
 
-  const [accent, label] = map[type] ?? [colors.quaternary, type];
+  const fallbackLabel = type
+    .split('_')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' + ');
+
+  const [accent, label] = map[type] ?? [colors.quaternary, fallbackLabel];
 
   return <Badge bg={accent + '14'} color={accent} label={label} />;
 }

@@ -16,12 +16,10 @@ export function useSubscription() {
 }
 
 export function useCreateSubscription() {
-  const qc = useQueryClient();
   return useMutation({
     meta: { silent: true },
     mutationFn: (body: subApi.CreateSubscriptionBody) =>
       subApi.createSubscription(body),
-    onSuccess: () => invalidations.subscriptionChanged(qc),
   });
 }
 

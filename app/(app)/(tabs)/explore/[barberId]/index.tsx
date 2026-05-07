@@ -17,6 +17,7 @@ import ErrorView from '@/components/feedback/ErrorView';
 import { useBarberDetail } from '@/lib/hooks/useBarbers';
 import { useBarberChat } from '@/lib/hooks/useBarberChat';
 import { useLocation } from '@/lib/hooks/useLocation';
+import { useSubscription } from '@/lib/hooks/useSubscription';
 import { useColors } from '@/lib/theme/colors';
 import { formatCurrency } from '@/lib/utils/format';
 
@@ -33,6 +34,9 @@ export default function BarberDetailScreen() {
 
   const barberName = data?.barber?.name ?? '';
   const { openChat, isPending: chatPending } = useBarberChat(barberId, barberName);
+  const { data: subscription } = useSubscription();
+  const isSubscribed =
+    subscription?.status === 'active' || subscription?.status === 'past_due';
 
   if (isLoading) return <BarberDetailSkeleton />;
   if (isError || !data) return <ErrorView error={error} onRetry={refetch} />;
@@ -146,9 +150,9 @@ export default function BarberDetailScreen() {
                 label="Book Now"
                 full
                 onPress={() =>
-                  router.push(
-                    `/(app)/(tabs)/explore/${barberId}/availability`,
-                  )
+                  isSubscribed
+                    ? router.push(`/(app)/(tabs)/explore/${barberId}/availability`)
+                    : router.push('/(app)/paywall')
                 }
               />
             </View>
@@ -159,9 +163,9 @@ export default function BarberDetailScreen() {
                   variant="secondary"
                   full
                   onPress={() =>
-                    router.push(
-                      `/(app)/(tabs)/explore/${barberId}/recurring-services`,
-                    )
+                    isSubscribed
+                      ? router.push(`/(app)/(tabs)/explore/${barberId}/recurring-services`)
+                      : router.push('/(app)/paywall')
                   }
                 />
               </View>
@@ -172,10 +176,10 @@ export default function BarberDetailScreen() {
         <View className="px-5 mt-7">
           <Section title="Services">
             {services.map((s) => (
-              <Card key={s.id} className="mb-[10px] flex-row items-center justify-between">
-                <View className="flex-1">
-                  <View className="flex-row items-center gap-2">
-                    <Text className="text-[15px] font-semibold text-ink">
+              <Card key={s.id} className="mb-[10px] flex-row items-start justify-between">
+                <View className="flex-1 mr-3">
+                  <View className="flex-row items-center gap-2 flex-wrap">
+                    <Text className="text-[15px] font-semibold text-ink shrink">
                       {s.name}
                     </Text>
                     <TypeBadge type={s.serviceType} />
@@ -187,7 +191,7 @@ export default function BarberDetailScreen() {
                     </Text>
                   </View>
                 </View>
-                <Text className="text-[17px] font-bold text-brand ml-3">
+                <Text className="text-[17px] font-bold text-brand shrink-0">
                   {formatCurrency(s.regularPrice)}
                 </Text>
               </Card>

@@ -64,7 +64,7 @@ export default function LoginScreen() {
           className="flex-1 px-5"
           keyboardShouldPersistTaps="handled"
         >
-          <Header title="" onBack={() => router.back()} />
+          <Header title="" onBack={() => router.replace('/(auth)/welcome')} />
 
           <View className="items-center mt-2 mb-7">
             <Image

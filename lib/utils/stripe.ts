@@ -14,7 +14,6 @@ export async function collectPaymentMethod(): Promise<{
   });
 
   if (error) {
-    if (error.code === 'Canceled') return null;
     console.warn('[stripe] createPaymentMethod error:', error);
     return null;
   }

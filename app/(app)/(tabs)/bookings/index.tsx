@@ -8,7 +8,7 @@ import UpcomingBookingCard from '@/components/booking/UpcomingBookingCard';
 import PastBookingCard from '@/components/booking/PastBookingCard';
 import RecurringBookingCard from '@/components/booking/RecurringBookingCard';
 import EmptyState from '@/components/feedback/EmptyState';
-import LoadingSpinner from '@/components/feedback/LoadingSpinner';
+import { BookingCardSkeleton } from '@/components/feedback/SkeletonVariants';
 import {
   useUpcomingBookings,
   usePastBookings,
@@ -63,13 +63,19 @@ function UpcomingList() {
     [router],
   );
 
-  if (isLoading) return <LoadingSpinner />;
+  if (isLoading)
+    return (
+      <View className="px-5 gap-3 mt-4">
+        {[1, 2, 3].map((i) => <BookingCardSkeleton key={i} />)}
+      </View>
+    );
   if (bookings.length === 0)
     return (
       <EmptyState
         icon="calendar"
         title="No upcoming bookings"
-        subtitle="Book an appointment with a barber to get started."
+        body="Book an appointment with a barber to get started."
+        cta={{ label: 'Find a barber', onPress: () => router.push('/(app)/(tabs)/explore') }}
       />
     );
 
@@ -120,13 +126,18 @@ function PastList() {
     [router],
   );
 
-  if (isLoading) return <LoadingSpinner />;
+  if (isLoading)
+    return (
+      <View className="px-5 gap-3 mt-4">
+        {[1, 2, 3].map((i) => <BookingCardSkeleton key={i} />)}
+      </View>
+    );
   if (bookings.length === 0)
     return (
       <EmptyState
         icon="clock"
         title="No past bookings"
-        subtitle="Completed appointments will show up here."
+        body="Completed appointments will show up here."
       />
     );
 
@@ -171,13 +182,19 @@ function RecurringList() {
     [router],
   );
 
-  if (isLoading) return <LoadingSpinner />;
+  if (isLoading)
+    return (
+      <View className="px-5 gap-3 mt-4">
+        {[1, 2, 3].map((i) => <BookingCardSkeleton key={i} />)}
+      </View>
+    );
   if (bookings.length === 0)
     return (
       <EmptyState
         icon="repeat"
         title="No recurring bookings"
-        subtitle="Set up a recurring slot with your barber from their profile."
+        body="Set up a recurring slot with your barber from their profile."
+        cta={{ label: 'Find a barber', onPress: () => router.push('/(app)/(tabs)/explore') }}
       />
     );
 

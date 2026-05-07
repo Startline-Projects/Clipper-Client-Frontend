@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -12,6 +11,7 @@ import Header from '@/components/ui/Header';
 import Btn from '@/components/ui/Btn';
 import TextField from '@/components/forms/TextField';
 import { useChangePassword } from '@/lib/hooks/useAuth';
+import { showSuccessToast, showErrorToast } from '@/lib/feedback/toast';
 
 export default function ChangePasswordScreen() {
   const router = useRouter();
@@ -27,7 +27,7 @@ export default function ChangePasswordScreen() {
     if (!canSubmit || changePassword.isPending) return;
 
     if (newPwd !== confirm) {
-      Alert.alert('Mismatch', 'New passwords do not match.');
+      showErrorToast(null, 'New passwords do not match.');
       return;
     }
 
@@ -35,12 +35,11 @@ export default function ChangePasswordScreen() {
       { currentPassword: current, newPassword: newPwd },
       {
         onSuccess: () => {
-          Alert.alert('Password Changed', 'Your password has been updated.', [
-            { text: 'OK', onPress: () => router.back() },
-          ]);
+          showSuccessToast('Password updated');
+          router.back();
         },
         onError: () =>
-          Alert.alert('Failed', 'Could not change password. Check your current password.'),
+          showErrorToast(null, 'Could not change password — double-check your current password.'),
       },
     );
   };

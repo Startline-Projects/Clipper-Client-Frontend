@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -15,9 +14,10 @@ import Header from '@/components/ui/Header';
 import Avatar from '@/components/ui/Avatar';
 import Btn from '@/components/ui/Btn';
 import TextField from '@/components/forms/TextField';
-import LoadingSpinner from '@/components/feedback/LoadingSpinner';
+import { ProfileSkeleton } from '@/components/feedback/SkeletonVariants';
 import { useProfile, useUpdateProfile } from '@/lib/hooks/useProfile';
 import { useColors } from '@/lib/theme/colors';
+import { showSuccessToast, showErrorToast } from '@/lib/feedback/toast';
 import type { RNFile } from '@/lib/api/profile';
 
 export default function EditProfileScreen() {
@@ -55,7 +55,7 @@ export default function EditProfileScreen() {
     const trimmedName = name.trim();
     const trimmedUsername = username.trim();
     if (!trimmedName) {
-      Alert.alert('Name required', 'Please enter your name.');
+      showErrorToast(null, 'Please enter your name.');
       return;
     }
 
@@ -67,17 +67,15 @@ export default function EditProfileScreen() {
       },
       {
         onSuccess: () => {
-          Alert.alert('Saved', 'Profile updated.', [
-            { text: 'OK', onPress: () => router.back() },
-          ]);
+          showSuccessToast('Profile updated');
+          router.back();
         },
-        onError: () =>
-          Alert.alert('Failed', 'Could not update profile. Try again.'),
+        onError: (err) => showErrorToast(err),
       },
     );
   };
 
-  if (isLoading || !profile) return <LoadingSpinner />;
+  if (isLoading || !profile) return <ProfileSkeleton />;
 
   const displayUri = photoUri ?? profile.profilePhotoUrl ?? undefined;
 

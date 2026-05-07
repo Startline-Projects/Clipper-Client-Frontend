@@ -85,6 +85,18 @@ export function handleNotificationTap(
     return;
   }
 
+  const isArrangementType =
+    data.type === 'recurring_arrangement_offered' ||
+    data.type === 'recurring_arrangement_accepted' ||
+    data.type === 'recurring_arrangement_rejected';
+
+  if (isArrangementType && data.recurringBookingId) {
+    router.push(
+      `/(app)/(tabs)/bookings/arrangements/${data.recurringBookingId}`,
+    );
+    return;
+  }
+
   if (data.bookingId) {
     router.push(`/(app)/(tabs)/bookings/${data.bookingId}`);
     return;

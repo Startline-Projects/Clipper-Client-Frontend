@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CardField, type CardFieldInput } from '@stripe/stripe-react-native';
@@ -18,6 +18,8 @@ import {
 import { useColors } from '@/lib/theme/colors';
 import { formatDate } from '@/lib/utils/format';
 import { collectPaymentMethod } from '@/lib/utils/stripe';
+import { confirm } from '@/lib/feedback/confirm';
+import { showSuccessToast, showErrorToast } from '@/lib/feedback/toast';
 
 export default function SubscriptionScreen() {
   const router = useRouter();
@@ -35,43 +37,32 @@ export default function SubscriptionScreen() {
   const isInactive = sub.status === 'inactive';
   const isPastDue = sub.status === 'past_due';
 
-  const handleCancel = () => {
-    Alert.alert(
-      'Cancel Subscription',
-      'You will keep access until the end of your billing period.',
-      [
-        { text: 'Keep Plan', style: 'cancel' },
-        {
-          text: 'Cancel',
-          style: 'destructive',
-          onPress: () =>
-            cancelSub.mutate(undefined, {
-              onError: () =>
-                Alert.alert('Failed', 'Could not cancel. Try again.'),
-            }),
-        },
-      ],
-    );
+  const handleCancel = async () => {
+    const yes = await confirm({
+      title: 'Cancel subscription?',
+      message: 'You\'ll keep access until the end of your billing period.',
+      confirmLabel: 'Cancel Subscription',
+      cancelLabel: 'Keep Plan',
+      destructive: true,
+    });
+    if (!yes) return;
+    cancelSub.mutate(undefined, {
+      onSuccess: () => showSuccessToast('Subscription cancelled'),
+      onError: (err) => showErrorToast(err),
+    });
   };
 
-  const handleSwitchToYearly = () => {
-    Alert.alert(
-      'Switch to Yearly',
-      'You\'ll be switched to $9.99/year (save 17%). Change takes effect at next billing cycle.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Switch',
-          onPress: () =>
-            switchPlan.mutate(undefined, {
-              onSuccess: () =>
-                Alert.alert('Switched', 'Plan changed to yearly.'),
-              onError: () =>
-                Alert.alert('Failed', 'Could not switch plan. Try again.'),
-            }),
-        },
-      ],
-    );
+  const handleSwitchToYearly = async () => {
+    const yes = await confirm({
+      title: 'Switch to yearly?',
+      message: 'You\'ll be switched to $9.99/year (save 17%). Change takes effect at next billing cycle.',
+      confirmLabel: 'Switch',
+    });
+    if (!yes) return;
+    switchPlan.mutate(undefined, {
+      onSuccess: () => showSuccessToast('Plan changed to yearly'),
+      onError: (err) => showErrorToast(err),
+    });
   };
 
   const handleUpdateCard = async () => {
@@ -86,12 +77,11 @@ export default function SubscriptionScreen() {
       { paymentMethodId: result.paymentMethodId },
       {
         onSuccess: () => {
-          Alert.alert('Updated', 'Payment method updated.');
+          showSuccessToast('Payment method updated');
           setShowCardField(false);
           setCardComplete(false);
         },
-        onError: () =>
-          Alert.alert('Failed', 'Could not update card. Try again.'),
+        onError: (err) => showErrorToast(err),
       },
     );
   };

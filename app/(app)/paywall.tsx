@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Image, ScrollView, Text, View } from 'react-native';
+import { Image, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CardField, type CardFieldInput } from '@stripe/stripe-react-native';
@@ -10,6 +10,7 @@ import PlanSelector from '@/components/subscription/PlanSelector';
 import { useCreateSubscription, useSubscription } from '@/lib/hooks/useSubscription';
 import { useColors } from '@/lib/theme/colors';
 import { collectPaymentMethod, confirmPayment } from '@/lib/utils/stripe';
+import { showSuccessToast, showErrorToast } from '@/lib/feedback/toast';
 import type { IconName } from '@/components/ui/Icon';
 
 const VALUE_PROPS: { icon: IconName; title: string; sub: string }[] = [
@@ -63,7 +64,7 @@ export default function PaywallScreen() {
       if (result.clientSecret) {
         const payment = await confirmPayment(result.clientSecret);
         if (!payment.success) {
-          Alert.alert('Payment Failed', payment.error ?? 'Try again.');
+          showErrorToast(null, payment.error ?? 'Payment failed. Try again.');
           setLoading(false);
           return;
         }
@@ -75,18 +76,10 @@ export default function PaywallScreen() {
         await new Promise((r) => setTimeout(r, 1500));
       }
 
-      Alert.alert(
-        'Welcome to Clipper!',
-        'Your subscription is active. Start exploring barbers.',
-        [
-          {
-            text: 'Get Started',
-            onPress: () => router.replace('/(app)/(tabs)/explore'),
-          },
-        ],
-      );
+      showSuccessToast('Welcome to Clipper!', 'Subscription active');
+      router.replace('/(app)/(tabs)/explore');
     } catch {
-      Alert.alert('Failed', 'Could not complete subscription. Try again.');
+      showErrorToast(null, 'Could not complete subscription. Try again.');
     } finally {
       setLoading(false);
     }

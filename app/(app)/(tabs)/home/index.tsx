@@ -6,7 +6,11 @@ import Btn from '@/components/ui/Btn';
 import Card from '@/components/ui/Card';
 import NextBookingCard from '@/components/booking/NextBookingCard';
 import SubscriptionStatusCard from '@/components/subscription/SubscriptionStatusCard';
-import LoadingSpinner from '@/components/feedback/LoadingSpinner';
+import {
+  HomeHeaderSkeleton,
+  NextBookingCardSkeleton,
+} from '@/components/feedback/SkeletonVariants';
+import { Skeleton } from '@/components/feedback/Skeleton';
 import { useProfile } from '@/lib/hooks/useProfile';
 import { useSubscription } from '@/lib/hooks/useSubscription';
 import { useUnreadCount } from '@/lib/hooks/useNotifications';
@@ -30,7 +34,21 @@ export default function HomeScreen() {
   const isSubscribed =
     subscription?.status === 'active' || subscription?.status === 'past_due';
 
-  if (profileLoading) return <LoadingSpinner />;
+  if (profileLoading)
+    return (
+      <SafeAreaView className="flex-1 bg-bg" edges={['top']}>
+        <View className="gap-4 pt-4">
+          <HomeHeaderSkeleton />
+          <View className="px-5">
+            <NextBookingCardSkeleton />
+          </View>
+          <View className="px-5 flex-row gap-3">
+            <Skeleton className="flex-1" height={80} borderRadius={12} />
+            <Skeleton className="flex-1" height={80} borderRadius={12} />
+          </View>
+        </View>
+      </SafeAreaView>
+    );
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={['top']}>

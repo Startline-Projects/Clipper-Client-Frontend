@@ -22,6 +22,8 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
     pending_client_approval: [colors.yellow, 'Awaiting'],
     pending_barber_approval: [colors.yellow, 'Pending'],
     expired: [colors.tertiary, 'Expired'],
+    rejected: [colors.red, 'Rejected'],
+    ended: [colors.tertiary, 'Ended'],
     pending_approval: [colors.yellow, 'Pending'],
     past_due: [colors.red, 'Past Due'],
   };

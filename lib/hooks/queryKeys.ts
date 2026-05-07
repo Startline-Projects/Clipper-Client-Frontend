@@ -1,4 +1,4 @@
-import type { BarberSort, RecurringFilter, RecurringStatus } from '@/lib/schemas/enums';
+import type { BarberSort, RecurringFilter, RecurringStatus, RecurringArrangementStatus } from '@/lib/schemas/enums';
 
 export interface BarbersFilters {
   latitude: number;
@@ -18,6 +18,10 @@ export interface ReviewsFilters {
 
 export interface ConversationsFilters {
   search?: string;
+}
+
+export interface ArrangementsFilters {
+  status?: RecurringArrangementStatus;
 }
 
 export interface NotificationsFilters {
@@ -107,6 +111,16 @@ export const queryKeys = {
         serviceIds.sort().join(','),
         dayOfWeek,
       ] as const,
+  },
+
+  arrangements: {
+    all: ['arrangements'] as const,
+    lists: () => [...queryKeys.arrangements.all, 'list'] as const,
+    list: (filters: ArrangementsFilters) =>
+      [...queryKeys.arrangements.lists(), filters] as const,
+    details: () => [...queryKeys.arrangements.all, 'detail'] as const,
+    detail: (id: string) =>
+      [...queryKeys.arrangements.details(), id] as const,
   },
 
   reviews: {

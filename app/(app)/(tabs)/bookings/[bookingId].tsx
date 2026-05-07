@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
@@ -10,9 +10,13 @@ import Icon from '@/components/ui/Icon';
 import StatusBadge from '@/components/ui/StatusBadge';
 import Badge from '@/components/ui/Badge';
 import PriceBreakdown from '@/components/booking/PriceBreakdown';
-import LoadingSpinner from '@/components/feedback/LoadingSpinner';
+import ErrorView from '@/components/feedback/ErrorView';
+import { BookingDetailSkeleton } from '@/components/feedback/SkeletonVariants';
 import { useBookingDetail, useCancelBooking } from '@/lib/hooks/useBookings';
+import { useBarberChat } from '@/lib/hooks/useBarberChat';
 import { useColors } from '@/lib/theme/colors';
+import { confirm } from '@/lib/feedback/confirm';
+import { showSuccessToast } from '@/lib/feedback/toast';
 import {
   formatCurrency,
   formatDate,
@@ -25,35 +29,36 @@ export default function BookingDetailScreen() {
   const router = useRouter();
   const colors = useColors();
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
-  const { data: booking, isLoading } = useBookingDetail(bookingId);
+  const { data: booking, isLoading, isError, error, refetch } =
+    useBookingDetail(bookingId);
   const cancel = useCancelBooking();
   const [cancelling, setCancelling] = useState(false);
+  const barberId = booking?.barber?.id ?? '';
+  const barberName = booking?.barber?.name ?? '';
+  const { openChat, isPending: chatPending } = useBarberChat(barberId, barberName);
 
-  if (isLoading || !booking) return <LoadingSpinner />;
+  if (isLoading) return <BookingDetailSkeleton />;
+  if (isError || !booking) return <ErrorView error={error} onRetry={refetch} />;
 
   const canCancel =
     booking.status === 'pending' || booking.status === 'confirmed';
   const canReview =
     booking.status === 'completed' && !booking.review;
 
-  const handleCancel = () => {
-    Alert.alert(
-      'Cancel Booking',
-      'Are you sure you want to cancel this booking?',
-      [
-        { text: 'Keep Booking', style: 'cancel' },
-        {
-          text: 'Cancel Booking',
-          style: 'destructive',
-          onPress: () => {
-            setCancelling(true);
-            cancel.mutate(booking.id, {
-              onSettled: () => setCancelling(false),
-            });
-          },
-        },
-      ],
-    );
+  const handleCancel = async () => {
+    const ok = await confirm({
+      title: 'Cancel Booking',
+      message: 'Are you sure you want to cancel this booking?',
+      confirmLabel: 'Cancel Booking',
+      cancelLabel: 'Keep Booking',
+      destructive: true,
+    });
+    if (!ok) return;
+    setCancelling(true);
+    cancel.mutate(booking.id, {
+      onSuccess: () => showSuccessToast('Booking cancelled'),
+      onSettled: () => setCancelling(false),
+    });
   };
 
   return (
@@ -181,6 +186,14 @@ export default function BookingDetailScreen() {
               }
             />
           )}
+          <Btn
+            label="Message Barber"
+            variant="secondary"
+            full
+            icon="chat"
+            onPress={openChat}
+            disabled={chatPending}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>

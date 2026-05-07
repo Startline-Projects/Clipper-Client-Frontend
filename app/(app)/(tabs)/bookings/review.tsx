@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -14,6 +13,7 @@ import Btn from '@/components/ui/Btn';
 import StarRow from '@/components/ui/StarRow';
 import TextArea from '@/components/forms/TextArea';
 import { useCreateReview } from '@/lib/hooks/useReviews';
+import { showSuccessToast, showErrorToast } from '@/lib/feedback/toast';
 
 export default function WriteReviewScreen() {
   const router = useRouter();
@@ -36,12 +36,10 @@ export default function WriteReviewScreen() {
       },
       {
         onSuccess: () => {
-          Alert.alert('Review submitted', 'Thanks for your feedback!', [
-            { text: 'OK', onPress: () => router.back() },
-          ]);
+          showSuccessToast('Review submitted — thanks for your feedback!');
+          router.back();
         },
-        onError: () =>
-          Alert.alert('Failed', 'Could not submit your review. Try again.'),
+        onError: (err) => showErrorToast(err),
       },
     );
   };

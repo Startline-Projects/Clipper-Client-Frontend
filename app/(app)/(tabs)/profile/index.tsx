@@ -1,16 +1,18 @@
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Avatar from '@/components/ui/Avatar';
 import Icon from '@/components/ui/Icon';
 import Card from '@/components/ui/Card';
 import Toggle from '@/components/ui/Toggle';
-import LoadingSpinner from '@/components/feedback/LoadingSpinner';
+import { ProfileSkeleton } from '@/components/feedback/SkeletonVariants';
+import ErrorView from '@/components/feedback/ErrorView';
 import { useProfile } from '@/lib/hooks/useProfile';
 import { useLogout } from '@/lib/hooks/useAuth';
 import { useTheme } from '@/lib/hooks/useTheme';
 import { useThemePreference, useSetThemePreference } from '@/lib/stores/theme';
 import { useColors } from '@/lib/theme/colors';
+import { confirm } from '@/lib/feedback/confirm';
 
 const MENU_ROWS = [
   { key: 'edit', icon: 'user' as const, label: 'Edit Profile' },
@@ -21,7 +23,7 @@ const MENU_ROWS = [
 export default function ProfileScreen() {
   const router = useRouter();
   const colors = useColors();
-  const { data: profile, isLoading } = useProfile();
+  const { data: profile, isLoading, isError, error, refetch } = useProfile();
   const logout = useLogout();
   const themePref = useThemePreference();
   const setThemePref = useSetThemePreference();
@@ -41,30 +43,20 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleLogout = () => {
-    Alert.alert('Log Out', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Log Out',
-        style: 'destructive',
-        onPress: () => logout.mutate(),
-      },
-    ]);
+  const handleLogout = async () => {
+    const yes = await confirm({
+      title: 'Log out?',
+      message: 'You can sign back in any time.',
+      confirmLabel: 'Log Out',
+      destructive: true,
+    });
+    if (yes) logout.mutate();
   };
 
-  if (isLoading) return <LoadingSpinner />;
+  if (isLoading) return <ProfileSkeleton />;
 
-  if (!profile) {
-    return (
-      <SafeAreaView className="flex-1 bg-bg items-center justify-center px-8" edges={['top']}>
-        <Text className="text-[16px] font-semibold text-ink text-center mb-1">
-          Couldn't load profile
-        </Text>
-        <Text className="text-[14px] text-tertiary text-center leading-[20px]">
-          Check your connection and try again.
-        </Text>
-      </SafeAreaView>
-    );
+  if (isError || !profile) {
+    return <ErrorView error={error} onRetry={refetch} />;
   }
 
   return (

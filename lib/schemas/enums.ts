@@ -10,10 +10,13 @@ export const RecurringFrequency = z.enum(['weekly', 'biweekly']);
 
 export const RecurringStatus = z.enum([
   'pending_barber_approval',
+  'pending_client_approval',
   'active',
   'paused',
   'cancelled',
   'expired',
+  'rejected',
+  'ended',
 ]);
 
 export const ClientRecurringStatus = z.enum(['active', 'paused', 'pending_approval']);
@@ -33,7 +36,22 @@ export const NotificationType = z.enum([
   'recurring_refused',
   'recurring_expiring',
   'new_message',
+  'recurring_arrangement_offered',
+  'recurring_arrangement_accepted',
+  'recurring_arrangement_rejected',
 ]);
+
+export const RecurringArrangementStatus = z.enum([
+  'pending_client_approval',
+  'active',
+  'rejected',
+  'cancelled',
+  'ended',
+]);
+
+export const ArrangementFrequency = z.enum(['weekly', 'biweekly', 'every_n_weeks', 'monthly']);
+
+export const ArrangementEndType = z.enum(['none', 'after_count', 'on_date']);
 
 export const CancelledBy = z.enum(['client', 'barber']);
 
@@ -54,6 +72,9 @@ export type RecurringFilter = z.infer<typeof RecurringFilter>;
 export type SubscriptionStatus = z.infer<typeof SubscriptionStatus>;
 export type SubscriptionPlan = z.infer<typeof SubscriptionPlan>;
 export type NotificationType = z.infer<typeof NotificationType>;
+export type RecurringArrangementStatus = z.infer<typeof RecurringArrangementStatus>;
+export type ArrangementFrequency = z.infer<typeof ArrangementFrequency>;
+export type ArrangementEndType = z.infer<typeof ArrangementEndType>;
 export type CancelledBy = z.infer<typeof CancelledBy>;
 export type DevicePlatform = z.infer<typeof DevicePlatform>;
 export type SenderRole = z.infer<typeof SenderRole>;

@@ -10,6 +10,7 @@ interface RegisterInput extends authApi.RegisterBody {
 
 export function useRegister() {
   return useMutation({
+    meta: { silent: true },
     mutationFn: async ({ name, ...body }: RegisterInput) => {
       const tokens = await authApi.register(body);
       return { tokens, name };
@@ -27,6 +28,7 @@ export function useRegister() {
 
 export function useLogin() {
   return useMutation({
+    meta: { silent: true },
     mutationFn: (body: authApi.LoginBody) => authApi.login(body),
     onSuccess: async (res) => {
       const { setTokens, setUser, markLaunched } = useAuthStore.getState();
@@ -55,12 +57,14 @@ export function useLogout() {
 
 export function useForgotPassword() {
   return useMutation({
+    meta: { silent: true },
     mutationFn: (body: { email: string }) => authApi.forgotPassword(body),
   });
 }
 
 export function useResetPassword() {
   return useMutation({
+    meta: { silent: true },
     mutationFn: (body: { token: string; newPassword: string }) =>
       authApi.resetPassword(body),
   });
@@ -68,6 +72,7 @@ export function useResetPassword() {
 
 export function useChangePassword() {
   return useMutation({
+    meta: { silent: true },
     mutationFn: (body: { currentPassword: string; newPassword: string }) =>
       authApi.changePassword(body),
   });

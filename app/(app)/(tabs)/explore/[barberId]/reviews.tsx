@@ -7,7 +7,7 @@ import Pill from '@/components/ui/Pill';
 import ReviewsSummary from '@/components/explore/ReviewsSummary';
 import ReviewCard from '@/components/explore/ReviewCard';
 import EmptyState from '@/components/feedback/EmptyState';
-import LoadingSpinner from '@/components/feedback/LoadingSpinner';
+import { SkeletonRow } from '@/components/feedback/Skeleton';
 import { useBarberReviews } from '@/lib/hooks/useReviews';
 import type { ReviewItem } from '@/lib/api/reviews';
 
@@ -79,14 +79,27 @@ export default function AllReviewsScreen() {
       </View>
 
       {isLoading ? (
-        <LoadingSpinner />
+        <View className="px-5">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <SkeletonRow key={i} />
+          ))}
+        </View>
       ) : reviews.length === 0 ? (
         <>
           <ListHeader />
           <EmptyState
             icon="star"
-            title="No reviews yet"
-            subtitle="Be the first to leave a review after your booking."
+            title={ratingFilter ? `No ${ratingFilter}-star reviews` : 'No reviews yet'}
+            body={
+              ratingFilter
+                ? 'Try a different rating filter'
+                : 'Be the first to leave a review after your booking.'
+            }
+            cta={
+              ratingFilter
+                ? { label: 'Clear filter', onPress: () => setRatingFilter(undefined) }
+                : undefined
+            }
           />
         </>
       ) : (

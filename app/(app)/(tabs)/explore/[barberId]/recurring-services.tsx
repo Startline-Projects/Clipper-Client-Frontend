@@ -6,7 +6,7 @@ import Header from '@/components/ui/Header';
 import Btn from '@/components/ui/Btn';
 import Card from '@/components/ui/Card';
 import Icon from '@/components/ui/Icon';
-import LoadingSpinner from '@/components/feedback/LoadingSpinner';
+import { SkeletonList } from '@/components/feedback/Skeleton';
 import { useRecurringServices } from '@/lib/hooks/useRecurring';
 import { useColors } from '@/lib/theme/colors';
 import { formatCurrency } from '@/lib/utils/format';
@@ -52,7 +52,7 @@ export default function RecurringServicesScreen() {
         </Text>
 
         {isLoading ? (
-          <LoadingSpinner size="small" />
+          <SkeletonList count={4} height={72} />
         ) : (
           <View className="gap-[10px]">
             {services.map((s) => {
@@ -118,8 +118,8 @@ export default function RecurringServicesScreen() {
             full
             onPress={() =>
               router.push({
-                pathname: `/(app)/(tabs)/explore/${barberId}/recurring-slots`,
-                params: { serviceIds: selected.join(',') },
+                pathname: '/(app)/(tabs)/explore/[barberId]/recurring-slots',
+                params: { barberId, serviceIds: selected.join(',') },
               })
             }
             disabled={selected.length === 0}

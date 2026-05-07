@@ -1,4 +1,4 @@
-import { Image, ScrollView, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
@@ -12,8 +12,10 @@ import Avatar from '@/components/ui/Avatar';
 import WorkingHoursTable from '@/components/explore/WorkingHoursTable';
 import ReviewsSummary from '@/components/explore/ReviewsSummary';
 import ReviewCard from '@/components/explore/ReviewCard';
-import LoadingSpinner from '@/components/feedback/LoadingSpinner';
+import { BarberDetailSkeleton } from '@/components/feedback/SkeletonVariants';
+import ErrorView from '@/components/feedback/ErrorView';
 import { useBarberDetail } from '@/lib/hooks/useBarbers';
+import { useBarberChat } from '@/lib/hooks/useBarberChat';
 import { useLocation } from '@/lib/hooks/useLocation';
 import { useColors } from '@/lib/theme/colors';
 import { formatCurrency } from '@/lib/utils/format';
@@ -27,9 +29,13 @@ export default function BarberDetailScreen() {
     latitude !== null && longitude !== null
       ? { latitude, longitude }
       : null;
-  const { data, isLoading } = useBarberDetail(barberId, coords);
+  const { data, isLoading, isError, error, refetch } = useBarberDetail(barberId, coords);
 
-  if (isLoading || !data) return <LoadingSpinner />;
+  const barberName = data?.barber?.name ?? '';
+  const { openChat, isPending: chatPending } = useBarberChat(barberId, barberName);
+
+  if (isLoading) return <BarberDetailSkeleton />;
+  if (isError || !data) return <ErrorView error={error} onRetry={refetch} />;
 
   const { barber, services, reviews, reviewsSummary, distance } = data;
 
@@ -37,7 +43,19 @@ export default function BarberDetailScreen() {
     <SafeAreaView className="flex-1 bg-bg" edges={['top']}>
       <ScrollView className="flex-1" contentContainerClassName="pb-8">
         <View className="px-5">
-          <Header title={barber.name} onBack={() => router.back()} />
+          <Header
+            title={barber.name}
+            onBack={() => router.back()}
+            right={
+              <Pressable
+                onPress={openChat}
+                disabled={chatPending}
+                className="w-9 h-9 rounded-full bg-bg-warm items-center justify-center active:opacity-70"
+              >
+                <Icon name="chat" size={18} color={colors.ink} />
+              </Pressable>
+            }
+          />
         </View>
 
         <View className="items-center px-5 mt-2 mb-4">
@@ -72,20 +90,30 @@ export default function BarberDetailScreen() {
 
           <View className="flex-row gap-[14px] flex-wrap mt-2">
             {barber.address && (
-              <View className="flex-row items-center gap-1">
+              <Pressable
+                onPress={() =>
+                  Linking.openURL(
+                    `https://maps.google.com/?q=${encodeURIComponent(barber.address!)}`,
+                  )
+                }
+                className="flex-row items-center gap-1 active:opacity-70"
+              >
                 <Icon name="location" size={12} color={colors.tertiary} />
-                <Text className="text-[12px] text-tertiary">
+                <Text className="text-[12px] text-tertiary underline">
                   {barber.address}
                 </Text>
-              </View>
+              </Pressable>
             )}
             {barber.phone && (
-              <View className="flex-row items-center gap-1">
+              <Pressable
+                onPress={() => Linking.openURL(`tel:${barber.phone}`)}
+                className="flex-row items-center gap-1 active:opacity-70"
+              >
                 <Icon name="phone" size={12} color={colors.tertiary} />
-                <Text className="text-[12px] text-tertiary">
+                <Text className="text-[12px] text-tertiary underline">
                   {barber.phone}
                 </Text>
-              </View>
+              </Pressable>
             )}
           </View>
 
@@ -93,7 +121,7 @@ export default function BarberDetailScreen() {
             <Card
               className="mt-4 p-[14px] mb-0 border-0 shadow-none"
               style={{
-                backgroundColor: '#FFF8ED',
+                backgroundColor: '#1A1200',
                 borderLeftWidth: 3,
                 borderLeftColor: '#C47F17',
               }}
@@ -105,7 +133,7 @@ export default function BarberDetailScreen() {
                     Recurring slots available
                   </Text>
                   <Text className="text-[12px] text-secondary mt-[2px]">
-                    Lock in a weekly or biweekly spot
+                    Lock in a weekly or biweekly appointment
                   </Text>
                 </View>
               </View>

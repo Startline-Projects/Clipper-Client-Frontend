@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -14,9 +13,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
 import Btn from '@/components/ui/Btn';
 import TextField from '@/components/forms/TextField';
-import Icon from '@/components/ui/Icon';
+import ErrorView from '@/components/feedback/ErrorView';
+import SuccessView from '@/components/feedback/SuccessView';
 import { useColors } from '@/lib/theme/colors';
 import { useResetPassword } from '@/lib/hooks/useAuth';
+import { confirm as showConfirmDialog } from '@/lib/feedback/confirm';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -39,25 +40,12 @@ export default function ResetPasswordScreen() {
 
   if (!token) {
     return (
-      <SafeAreaView className="flex-1 bg-surface">
-        <View className="flex-1 items-center justify-center px-8">
-          <View className="w-14 h-14 rounded-full bg-red/10 items-center justify-center mb-4">
-            <Icon name="alert" size={26} color={colors.red} />
-          </View>
-          <Text className="text-[18px] font-bold text-ink tracking-[-0.3px] mb-2 text-center">
-            Invalid reset link
-          </Text>
-          <Text className="text-[14px] text-secondary text-center leading-[20px] mb-6">
-            This link is invalid or has expired. Please request a new password
-            reset.
-          </Text>
-          <Btn
-            label="Request new link"
-            full
-            onPress={() => router.replace('/(auth)/forgot-password')}
-          />
-        </View>
-      </SafeAreaView>
+      <ErrorView
+        title="Invalid reset link"
+        message="This link is invalid or has expired. Please request a new password reset."
+        icon="shield"
+        primaryCta={{ label: 'Request new link', onPress: () => router.replace('/(auth)/forgot-password') }}
+      />
     );
   }
 
@@ -82,42 +70,26 @@ export default function ResetPasswordScreen() {
       { token, newPassword: password },
       {
         onSuccess: () => setSuccess(true),
-        onError: () =>
-          Alert.alert(
-            'Reset failed',
-            'This link may have expired or already been used. Please request a new one.',
-            [
-              { text: 'Cancel', style: 'cancel' },
-              {
-                text: 'Request new link',
-                onPress: () => router.replace('/(auth)/forgot-password'),
-              },
-            ],
-          ),
+        onError: async () => {
+          const yes = await showConfirmDialog({
+            title: 'Reset failed',
+            message: 'This link may have expired or already been used.',
+            confirmLabel: 'Request new link',
+            cancelLabel: 'Cancel',
+          });
+          if (yes) router.replace('/(auth)/forgot-password');
+        },
       },
     );
   };
 
   if (success) {
     return (
-      <SafeAreaView className="flex-1 bg-surface">
-        <View className="flex-1 items-center justify-center px-8">
-          <View className="w-[72px] h-[72px] rounded-full bg-green/10 items-center justify-center mb-5">
-            <Icon name="check" size={36} color={colors.green} />
-          </View>
-          <Text className="text-[22px] font-extrabold text-ink tracking-[-0.5px] mb-2">
-            Password updated
-          </Text>
-          <Text className="text-[14px] text-secondary text-center leading-[20px] mb-8">
-            Your password has been changed. Log in with your new password.
-          </Text>
-          <Btn
-            label="Back to login"
-            full
-            onPress={() => router.replace('/(auth)/login')}
-          />
-        </View>
-      </SafeAreaView>
+      <SuccessView
+        title="Password updated"
+        message="Your password has been changed. Log in with your new password."
+        primaryCta={{ label: 'Back to login', onPress: () => router.replace('/(auth)/login') }}
+      />
     );
   }
 

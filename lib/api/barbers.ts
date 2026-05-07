@@ -73,6 +73,8 @@ const BarberDetailSchema = z.object({
     phone: z.string().nullable(),
     workingHours: z.array(WorkingHourSchema),
     recurringAvailable: z.boolean(),
+    barberName: z.string().nullable().optional(),
+    shopName: z.string().nullable().optional(),
   }),
   services: z.array(BarberServiceSchema),
   reviews: z.array(BarberReviewSchema),

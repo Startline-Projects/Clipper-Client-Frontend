@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
@@ -12,6 +12,7 @@ import { useBarberDetail } from '@/lib/hooks/useBarbers';
 import { useBookingFlowStore } from '@/lib/stores/booking-flow';
 import { useLocation } from '@/lib/hooks/useLocation';
 import { useColors } from '@/lib/theme/colors';
+import { showErrorToast } from '@/lib/feedback/toast';
 import {
   formatCurrency,
   formatDate,
@@ -31,27 +32,32 @@ export default function PreviewScreen() {
   const previewData = useBookingFlowStore((s) => s.previewData);
   const selectedDate = useBookingFlowStore((s) => s.selectedDate);
   const selectedSlot = useBookingFlowStore((s) => s.selectedSlot);
-  const confirm = useConfirmBooking();
+  const confirmBooking = useConfirmBooking();
+  const reset = useBookingFlowStore((s) => s.reset);
 
   useEffect(() => {
-    if (!previewData) router.back();
-  }, [previewData, router]);
+    if (!previewData && !confirmBooking.isPending) router.back();
+  }, [previewData, confirmBooking.isPending, router]);
 
   if (!previewData) return null;
 
   const handleConfirm = () => {
-    if (confirm.isPending) return;
-    confirm.mutate(undefined, {
-      onSuccess: (res) =>
+    if (confirmBooking.isPending) return;
+    confirmBooking.mutate(undefined, {
+      onSuccess: (res) => {
+        reset();
         router.replace({
-          pathname: `/(app)/(tabs)/explore/${barberId}/confirmed`,
-          params: { bookingId: res.booking.id },
-        }),
-      onError: () =>
-        Alert.alert(
-          'Booking failed',
-          'Something went wrong. Please try again.',
-        ),
+          pathname: '/(app)/(tabs)/explore/[barberId]/confirmed',
+          params: { barberId, bookingId: res.booking.id },
+        });
+      },
+      onError: (err: any) => {
+        if (err?.status === 409) {
+          showErrorToast(null, 'Someone just booked this slot — pick another time.');
+        } else {
+          showErrorToast(err, 'Booking failed. Please try again.');
+        }
+      },
     });
   };
 
@@ -122,13 +128,13 @@ export default function PreviewScreen() {
         <View className="mt-6">
           <Btn
             label={
-              confirm.isPending
+              confirmBooking.isPending
                 ? 'Confirming...'
                 : `Confirm Booking — ${formatCurrency(previewData.pricing.totalPrice)}`
             }
             full
             onPress={handleConfirm}
-            disabled={confirm.isPending}
+            disabled={confirmBooking.isPending}
           />
         </View>
       </ScrollView>

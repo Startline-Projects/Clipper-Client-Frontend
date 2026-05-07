@@ -30,6 +30,14 @@ export const invalidations = {
     qc.invalidateQueries({ queryKey: queryKeys.bookings.recurring.lists() });
   },
 
+  arrangementMutated: (qc: QueryClient, arrangementId: string) => {
+    qc.invalidateQueries({
+      queryKey: queryKeys.arrangements.detail(arrangementId),
+    });
+    qc.invalidateQueries({ queryKey: queryKeys.arrangements.lists() });
+    qc.invalidateQueries({ queryKey: queryKeys.bookings.all });
+  },
+
   reviewCreated: (qc: QueryClient, bookingId: string) => {
     qc.invalidateQueries({ queryKey: queryKeys.reviews.all });
     qc.invalidateQueries({ queryKey: queryKeys.bookings.detail(bookingId) });

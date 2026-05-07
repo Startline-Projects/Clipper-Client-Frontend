@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -15,6 +14,7 @@ import Header from '@/components/ui/Header';
 import Btn from '@/components/ui/Btn';
 import TextField from '@/components/forms/TextField';
 import { useRegister } from '@/lib/hooks/useAuth';
+import { showErrorToast } from '@/lib/feedback/toast';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_RE = /^[a-zA-Z0-9_]+$/;
@@ -90,7 +90,7 @@ export default function SignupScreen() {
           } else if (/username.*taken|username.*already/i.test(msg)) {
             setErrors((e) => ({ ...e, username: 'This username is already taken' }));
           } else {
-            Alert.alert('Sign up failed', msg);
+            showErrorToast(null, msg);
           }
         },
       },

@@ -5,7 +5,10 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClientProvider } from '@tanstack/react-query';
+import ToastHost from '@/components/feedback/ToastHost';
+import ConfirmHost from '@/components/feedback/ConfirmHost';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { queryClient } from '@/lib/utils/query-client';
 import { useAuthStore } from '@/lib/stores/auth.store';
@@ -51,6 +54,8 @@ function RootInner() {
       <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
       <AuthRedirect />
       <Slot />
+      <ToastHost />
+      <ConfirmHost />
     </View>
   );
 }
@@ -72,12 +77,14 @@ export default function RootLayout() {
   if (!isHydrated || !themeHydrated) return null;
 
   return (
-    <GestureHandlerRootView className="flex-1">
-      <QueryClientProvider client={queryClient}>
-        <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
-          <RootInner />
-        </StripeProvider>
-      </QueryClientProvider>
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <GestureHandlerRootView className="flex-1">
+        <QueryClientProvider client={queryClient}>
+          <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
+            <RootInner />
+          </StripeProvider>
+        </QueryClientProvider>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }

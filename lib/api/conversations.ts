@@ -49,6 +49,10 @@ const SendMessageResponseSchema = z.object({
   message: MessageSchema,
 });
 
+const StartConversationResponseSchema = z.object({
+  conversation: ConversationSchema,
+});
+
 // ── Public types ──
 
 export type Conversation = z.infer<typeof ConversationSchema>;
@@ -107,4 +111,16 @@ export async function sendMessage(
     { signal: opts.signal },
   );
   return SendMessageResponseSchema.parse(data).message;
+}
+
+export async function startConversation(
+  otherUserId: string,
+  opts: RequestOptions = {},
+): Promise<Conversation> {
+  const { data } = await apiClient.post(
+    '/conversations',
+    { otherUserId },
+    { signal: opts.signal },
+  );
+  return StartConversationResponseSchema.parse(data).conversation;
 }

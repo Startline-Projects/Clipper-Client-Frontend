@@ -63,6 +63,8 @@ export default function TabsLayout() {
           borderTopColor: colors.separator,
           borderTopWidth: 0.5,
         },
+        freezeOnBlur: false,
+        lazy: true,
       }}
     >
       {tabs.map((tab) => (

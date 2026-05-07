@@ -6,7 +6,7 @@ import Header from '@/components/ui/Header';
 import Icon from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import EmptyState from '@/components/feedback/EmptyState';
-import LoadingSpinner from '@/components/feedback/LoadingSpinner';
+import { ConversationRowSkeleton } from '@/components/feedback/SkeletonVariants';
 import { useNotifications, useMarkNotificationRead } from '@/lib/hooks/useNotifications';
 import { useColors } from '@/lib/theme/colors';
 import { formatRelativeTime } from '@/lib/utils/format';
@@ -104,12 +104,16 @@ export default function NotificationsScreen() {
       </View>
 
       {isLoading ? (
-        <LoadingSpinner />
+        <View>
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <ConversationRowSkeleton key={i} />
+          ))}
+        </View>
       ) : notifications.length === 0 ? (
         <EmptyState
           icon="bell"
-          title="No notifications"
-          subtitle="Booking confirmations and messages will appear here."
+          title="No notifications yet"
+          body="When you get booking updates or messages, they'll show up here."
         />
       ) : (
         <FlatList

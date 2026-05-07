@@ -7,7 +7,8 @@ import Pill from '@/components/ui/Pill';
 import Icon from '@/components/ui/Icon';
 import BarberCard from '@/components/explore/BarberCard';
 import EmptyState from '@/components/feedback/EmptyState';
-import LoadingSpinner from '@/components/feedback/LoadingSpinner';
+import ErrorView from '@/components/feedback/ErrorView';
+import { BarberCardSkeleton } from '@/components/feedback/SkeletonVariants';
 import { useBarbers } from '@/lib/hooks/useBarbers';
 import { useLocation } from '@/lib/hooks/useLocation';
 import { useUnreadCount } from '@/lib/hooks/useNotifications';
@@ -121,31 +122,40 @@ export default function ExploreScreen() {
       </View>
 
       {locLoading ? (
-        <LoadingSpinner />
-      ) : locError || !hasCoords ? (
-        <View className="flex-1 items-center justify-center px-8">
-          <View className="w-14 h-14 rounded-full bg-bg-warm items-center justify-center mb-4">
-            <Icon name="location" size={26} color={colors.tertiary} />
-          </View>
-          <Text className="text-[16px] font-semibold text-ink text-center mb-1">
-            Location required
-          </Text>
-          <Text className="text-[14px] text-tertiary text-center leading-[20px] mb-4">
-            Enable location to discover barbers near you.
-          </Text>
-          <Pressable onPress={refreshLocation} className="active:opacity-70">
-            <Text className="text-[14px] font-semibold text-blue">
-              Try again
-            </Text>
-          </Pressable>
+        <View className="px-5">
+          {[1, 2, 3].map((i) => (
+            <BarberCardSkeleton key={i} />
+          ))}
         </View>
+      ) : locError || !hasCoords ? (
+        <ErrorView
+          title="Location required"
+          message="Enable location to discover barbers near you."
+          icon="location"
+          onRetry={refreshLocation}
+        />
       ) : isLoading ? (
-        <LoadingSpinner />
+        <View className="px-5">
+          {[1, 2, 3].map((i) => (
+            <BarberCardSkeleton key={i} />
+          ))}
+        </View>
       ) : barbers.length === 0 ? (
         <EmptyState
-          icon="scissors"
+          icon="search"
           title="No barbers found"
-          subtitle="Try a different search or adjust your filters."
+          body="Try a different search or adjust your filters."
+          cta={
+            (search || recurringFilter)
+              ? {
+                  label: 'Clear filters',
+                  onPress: () => {
+                    setSearch('');
+                    setRecurringFilter(null);
+                  },
+                }
+              : undefined
+          }
         />
       ) : (
         <FlatList

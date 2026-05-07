@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -11,10 +12,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
 import MessageBubble from '@/components/messaging/MessageBubble';
 import MessageInput from '@/components/messaging/MessageInput';
-import LoadingSpinner from '@/components/feedback/LoadingSpinner';
+import { MessagesListSkeleton } from '@/components/feedback/SkeletonVariants';
 import EmptyState from '@/components/feedback/EmptyState';
 import { useMessages, useSendMessage } from '@/lib/hooks/useMessages';
 import { useRealtimeMessages } from '@/lib/hooks/useRealtimeMessages';
+import { useColors } from '@/lib/theme/colors';
 import { formatTime } from '@/lib/utils/format';
 import type { Message } from '@/lib/api/conversations';
 
@@ -24,6 +26,7 @@ export default function ChatScreen() {
     conversationId: string;
     name?: string;
   }>();
+  const colors = useColors();
   const [text, setText] = useState('');
   const listRef = useRef<FlatList>(null);
 
@@ -68,13 +71,13 @@ export default function ChatScreen() {
         keyboardVerticalOffset={0}
       >
         {isLoading ? (
-          <LoadingSpinner />
+          <MessagesListSkeleton />
         ) : messages.length === 0 ? (
           <View className="flex-1 justify-center">
             <EmptyState
               icon="chat"
               title="No messages yet"
-              subtitle="Send a message to get started"
+              body="Send a message to get started"
             />
           </View>
         ) : (
@@ -88,7 +91,9 @@ export default function ChatScreen() {
             onEndReached={() => hasNextPage && fetchNextPage()}
             onEndReachedThreshold={0.3}
             ListFooterComponent={
-              isFetchingNextPage ? <LoadingSpinner size="small" /> : null
+              isFetchingNextPage ? (
+                <ActivityIndicator size="small" color={colors.tertiary} style={{ paddingVertical: 12 }} />
+              ) : null
             }
           />
         )}

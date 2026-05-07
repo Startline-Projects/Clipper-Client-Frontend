@@ -1,12 +1,44 @@
-import { QueryClient, focusManager, onlineManager } from '@tanstack/react-query';
+import {
+  QueryClient,
+  QueryCache,
+  MutationCache,
+  focusManager,
+  onlineManager,
+} from '@tanstack/react-query';
 import { AppState, Platform } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
+import { showErrorToast } from '@/lib/feedback/toast';
 import type { ApiError } from '@/lib/api/client';
+
+declare module '@tanstack/react-query' {
+  interface Register {
+    queryMeta: { silent?: boolean };
+    mutationMeta: { silent?: boolean };
+  }
+}
 
 const STALE_TIME = 2 * 60 * 1000;
 const GC_TIME = 10 * 60 * 1000;
 
+const qCache = new QueryCache({
+  onError: (error, query) => {
+    if (query.state.data !== undefined && query.meta?.silent !== true) {
+      showErrorToast(error);
+    }
+  },
+});
+
+const mCache = new MutationCache({
+  onError: (error, _variables, _context, mutation) => {
+    if (mutation.meta?.silent !== true) {
+      showErrorToast(error);
+    }
+  },
+});
+
 export const queryClient = new QueryClient({
+  queryCache: qCache,
+  mutationCache: mCache,
   defaultOptions: {
     queries: {
       staleTime: STALE_TIME,

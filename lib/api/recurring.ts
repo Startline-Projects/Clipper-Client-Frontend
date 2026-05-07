@@ -66,7 +66,7 @@ const RecurringBookingSchema = z.object({
   }),
   barber: z.object({ id: z.string(), name: z.string() }),
   client: z.object({ id: z.string(), name: z.string() }),
-  nextOccurrenceAt: z.string().nullable(),
+  nextOccurrenceAt: z.string().nullish(),
   createdAt: z.string(),
 });
 

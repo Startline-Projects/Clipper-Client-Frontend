@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
@@ -7,7 +7,7 @@ import Btn from '@/components/ui/Btn';
 import ServiceSelector from '@/components/booking/ServiceSelector';
 import DateStrip from '@/components/booking/DateStrip';
 import SlotGrid from '@/components/booking/SlotGrid';
-import LoadingSpinner from '@/components/feedback/LoadingSpinner';
+import { Skeleton, SkeletonList } from '@/components/feedback/Skeleton';
 import { useBarberDetail } from '@/lib/hooks/useBarbers';
 import { useAvailability } from '@/lib/hooks/useAvailability';
 import { usePreviewBooking } from '@/lib/hooks/useBookingFlow';
@@ -15,6 +15,7 @@ import { useBookingFlowStore } from '@/lib/stores/booking-flow';
 import { useLocation } from '@/lib/hooks/useLocation';
 import { useColors } from '@/lib/theme/colors';
 import { formatDuration } from '@/lib/utils/format';
+import { showErrorToast } from '@/lib/feedback/toast';
 
 function toDateString(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -86,8 +87,7 @@ export default function AvailabilityScreen() {
     preview.mutate(undefined, {
       onSuccess: () =>
         router.push(`/(app)/(tabs)/explore/${barberId}/preview`),
-      onError: () =>
-        Alert.alert('Preview failed', 'Could not load booking preview. Try again.'),
+      onError: (err) => showErrorToast(err, 'Could not load booking preview. Try again.'),
     });
   };
 
@@ -114,7 +114,7 @@ export default function AvailabilityScreen() {
             onToggle={handleToggleService}
           />
         ) : (
-          <LoadingSpinner size="small" />
+          <SkeletonList count={3} height={64} />
         )}
 
         {selectedServices.length > 0 && (
@@ -135,7 +135,7 @@ export default function AvailabilityScreen() {
                 </Text>
 
                 {availLoading ? (
-                  <LoadingSpinner size="small" />
+                  <SkeletonList count={4} height={44} />
                 ) : selectedDay ? (
                   <View className="gap-5">
                     {selectedDay.slots.regular.length > 0 && (

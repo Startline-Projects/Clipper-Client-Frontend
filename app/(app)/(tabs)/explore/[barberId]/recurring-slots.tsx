@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
@@ -7,10 +7,11 @@ import Btn from '@/components/ui/Btn';
 import Card from '@/components/ui/Card';
 import Icon from '@/components/ui/Icon';
 import Badge from '@/components/ui/Badge';
-import LoadingSpinner from '@/components/feedback/LoadingSpinner';
+import { SkeletonList } from '@/components/feedback/Skeleton';
 import { useRecurringSlots, useCreateRecurring } from '@/lib/hooks/useRecurring';
 import { useColors } from '@/lib/theme/colors';
 import { formatTime, formatCurrency, formatDuration } from '@/lib/utils/format';
+import { showSuccessToast, showErrorToast } from '@/lib/feedback/toast';
 
 const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_NAMES_LONG = [
@@ -62,23 +63,10 @@ export default function RecurringSlotsScreen() {
       },
       {
         onSuccess: () => {
-          Alert.alert(
-            'Request Submitted',
-            'Your recurring booking request has been sent. You\'ll be notified when your barber responds.',
-            [
-              {
-                text: 'View Bookings',
-                onPress: () => router.replace('/(app)/(tabs)/bookings'),
-              },
-              {
-                text: 'Back to Home',
-                onPress: () => router.replace('/(app)/(tabs)/home'),
-              },
-            ],
-          );
+          showSuccessToast('Recurring request submitted!');
+          router.replace('/(app)/(tabs)/bookings');
         },
-        onError: () =>
-          Alert.alert('Failed', 'Could not submit request. Try again.'),
+        onError: (err) => showErrorToast(err),
       },
     );
   };
@@ -144,7 +132,7 @@ export default function RecurringSlotsScreen() {
               Pick a time
             </Text>
             {slotsLoading ? (
-              <LoadingSpinner size="small" />
+              <SkeletonList count={4} height={52} />
             ) : !slotData || !slotData.recurringAvailable ? (
               <Card className="p-5 items-center mb-6" style={{ backgroundColor: colors.bgWarm }}>
                 <Icon name="calendarOff" size={24} color={colors.tertiary} />

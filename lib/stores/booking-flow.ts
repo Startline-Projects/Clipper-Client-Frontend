@@ -42,7 +42,7 @@ interface BookingFlowState {
   removeService: (barberServiceId: string) => void;
   clearServices: () => void;
   setDate: (date: string | null) => void;
-  setSlot: (slot: string | null) => void;
+  setSlot: (slot: string | null, bookingType?: BookingType) => void;
   setPreview: (data: PreviewData | null) => void;
   reset: () => void;
 }
@@ -79,7 +79,14 @@ export const useBookingFlowStore = create<BookingFlowState>((set) => ({
 
   setDate: (selectedDate) => set({ selectedDate, selectedSlot: null, previewData: null }),
 
-  setSlot: (selectedSlot) => set({ selectedSlot, previewData: null }),
+  setSlot: (selectedSlot, bookingType) =>
+    set((s) => ({
+      selectedSlot,
+      previewData: null,
+      selectedServices: bookingType
+        ? s.selectedServices.map((svc) => ({ ...svc, bookingType }))
+        : s.selectedServices,
+    })),
 
   setPreview: (previewData) => set({ previewData }),
 

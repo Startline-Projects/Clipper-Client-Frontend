@@ -1,20 +1,22 @@
-import { FlatList, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SearchInput from '@/components/forms/SearchInput';
 import ConversationRow from '@/components/messaging/ConversationRow';
-import LoadingSpinner from '@/components/feedback/LoadingSpinner';
+import { ConversationRowSkeleton } from '@/components/feedback/SkeletonVariants';
 import EmptyState from '@/components/feedback/EmptyState';
 import { useConversations } from '@/lib/hooks/useConversations';
 import {
   useConversationSearch,
   useFiltersStore,
 } from '@/lib/stores/filters';
+import { useColors } from '@/lib/theme/colors';
 import { formatRelativeTime } from '@/lib/utils/format';
 import type { Conversation } from '@/lib/api/conversations';
 
 export default function MessagesScreen() {
   const router = useRouter();
+  const colors = useColors();
   const search = useConversationSearch();
   const setSearch = useFiltersStore((s) => s.setConversationSearch);
 
@@ -55,15 +57,24 @@ export default function MessagesScreen() {
       </View>
 
       {isLoading ? (
-        <LoadingSpinner />
+        <View>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <ConversationRowSkeleton key={i} />
+          ))}
+        </View>
       ) : conversations.length === 0 ? (
         <EmptyState
           icon="chat"
-          title="No conversations"
-          subtitle={
+          title={search ? 'No results' : 'No conversations'}
+          body={
             search
               ? 'No conversations match your search'
               : 'Book with a barber to start chatting'
+          }
+          cta={
+            search
+              ? undefined
+              : { label: 'Find a barber', onPress: () => router.push('/(app)/(tabs)/explore') }
           }
         />
       ) : (
@@ -74,7 +85,9 @@ export default function MessagesScreen() {
           onEndReached={() => hasNextPage && fetchNextPage()}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
-            isFetchingNextPage ? <LoadingSpinner size="small" /> : null
+            isFetchingNextPage ? (
+              <ActivityIndicator size="small" color={colors.tertiary} style={{ paddingVertical: 16 }} />
+            ) : null
           }
         />
       )}

@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -9,15 +10,17 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as ImagePicker from 'expo-image-picker';
+import BottomSheet from '@gorhom/bottom-sheet';
 import Header from '@/components/ui/Header';
 import Avatar from '@/components/ui/Avatar';
 import Btn from '@/components/ui/Btn';
 import TextField from '@/components/forms/TextField';
+import PhotoPickerSheet from '@/components/sheets/PhotoPickerSheet';
 import { ProfileSkeleton } from '@/components/feedback/SkeletonVariants';
 import { useProfile, useUpdateProfile } from '@/lib/hooks/useProfile';
 import { useColors } from '@/lib/theme/colors';
 import { showSuccessToast, showErrorToast } from '@/lib/feedback/toast';
+import { pickImage } from '@/lib/utils/pick-image';
 import type { RNFile } from '@/lib/api/profile';
 
 export default function EditProfileScreen() {
@@ -25,30 +28,42 @@ export default function EditProfileScreen() {
   const colors = useColors();
   const { data: profile, isLoading } = useProfile();
   const update = useUpdateProfile();
+  const sheetRef = useRef<BottomSheet>(null);
 
   const [name, setName] = useState(profile?.name ?? '');
   const [username, setUsername] = useState(profile?.username ?? '');
   const [photo, setPhoto] = useState<RNFile | null>(null);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [photoRemoved, setPhotoRemoved] = useState(false);
 
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
+  const openSheet = () => sheetRef.current?.expand();
+  const closeSheet = () => sheetRef.current?.close();
 
-    if (!result.canceled && result.assets[0]) {
-      const asset = result.assets[0];
-      const fileName = asset.fileName ?? `photo_${Date.now()}.jpg`;
-      setPhotoUri(asset.uri);
-      setPhoto({
-        uri: asset.uri,
-        type: asset.mimeType ?? 'image/jpeg',
-        name: fileName,
-      });
+  const pickFromLibrary = async () => {
+    closeSheet();
+    const file = await pickImage({ source: 'library', fileNamePrefix: 'profile' });
+    if (file) {
+      setPhoto(file);
+      setPhotoUri(file.uri);
+      setPhotoRemoved(false);
     }
+  };
+
+  const takePhoto = async () => {
+    closeSheet();
+    const file = await pickImage({ source: 'camera', fileNamePrefix: 'profile' });
+    if (file) {
+      setPhoto(file);
+      setPhotoUri(file.uri);
+      setPhotoRemoved(false);
+    }
+  };
+
+  const removePhoto = () => {
+    closeSheet();
+    setPhoto(null);
+    setPhotoUri(null);
+    setPhotoRemoved(true);
   };
 
   const handleSave = () => {
@@ -70,14 +85,27 @@ export default function EditProfileScreen() {
           showSuccessToast('Profile updated');
           router.back();
         },
-        onError: (err) => showErrorToast(err),
+        onError: (err) => {
+          if (photo) {
+            Alert.alert(
+              'Photo upload failed',
+              'Your photo could not be saved. Please try a different image or try again later.',
+            );
+          } else {
+            showErrorToast(err);
+          }
+        },
       },
     );
   };
 
   if (isLoading || !profile) return <ProfileSkeleton />;
 
-  const displayUri = photoUri ?? profile.profilePhotoUrl ?? undefined;
+  const displayUri = photoRemoved
+    ? undefined
+    : (photoUri ?? profile.profilePhotoUrl ?? undefined);
+
+  const hasExistingPhoto = !photoRemoved && !!(photoUri || profile.profilePhotoUrl);
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={['top']}>
@@ -95,7 +123,7 @@ export default function EditProfileScreen() {
           contentContainerClassName="pb-8"
         >
           <View className="items-center mb-6 mt-2">
-            <Pressable onPress={pickImage} className="active:opacity-70">
+            <Pressable onPress={openSheet} className="active:opacity-70">
               <Avatar name={name || profile.name} size={90} uri={displayUri} />
               <View
                 style={{ backgroundColor: colors.brand }}
@@ -138,6 +166,15 @@ export default function EditProfileScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <PhotoPickerSheet
+        ref={sheetRef}
+        hasPhoto={hasExistingPhoto}
+        onTakePhoto={takePhoto}
+        onChooseLibrary={pickFromLibrary}
+        onRemovePhoto={removePhoto}
+        onCancel={closeSheet}
+      />
     </SafeAreaView>
   );
 }

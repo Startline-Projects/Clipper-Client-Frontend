@@ -80,6 +80,7 @@ const BarberDetailSchema = z.object({
   reviews: z.array(BarberReviewSchema),
   reviewsSummary: ReviewsSummarySchema,
   distance: DistanceSchema,
+  hasActivePlan: z.boolean(),
 });
 
 // ── Public types ──

@@ -1,4 +1,4 @@
-import { Image, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Avatar from '@/components/ui/Avatar';
 import Badge from '@/components/ui/Badge';
 import Icon from '@/components/ui/Icon';
@@ -33,19 +33,12 @@ export default function BarberCard({
       className="bg-card rounded-lg mb-sm shadow-sm shadow-black/6 active:opacity-80 overflow-hidden"
     >
       <View className="flex-row gap-[14px] p-4">
-        <View
-          style={{ width: 68, height: 68, borderRadius: 16, overflow: 'hidden' }}
-          className="bg-bgMuted shrink-0"
-        >
-          {profileImage ? (
-            <Image
-              source={{ uri: profileImage }}
-              style={{ width: 68, height: 68 }}
-            />
-          ) : (
-            <Avatar name={name} size={68} />
-          )}
-        </View>
+        <Avatar
+          name={name}
+          size={68}
+          radius={16}
+          uri={profileImage ?? undefined}
+        />
 
         <View className="flex-1 min-w-0">
           <View className="flex-row items-center gap-2 flex-wrap">

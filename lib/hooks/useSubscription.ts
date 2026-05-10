@@ -3,7 +3,7 @@ import { useAuthStore } from '@/lib/stores/auth.store';
 import { queryKeys } from './queryKeys';
 import { invalidations } from './invalidations';
 import * as subApi from '@/lib/api/subscriptions';
-import type { SubscriptionState } from '@/lib/api/subscriptions';
+import type { SubscriptionState, ActivePlanResponse } from '@/lib/api/subscriptions';
 
 export function useSubscription() {
   const hasTokens = useAuthStore((s) => Boolean(s.accessToken));
@@ -12,6 +12,16 @@ export function useSubscription() {
     queryFn: ({ signal }) => subApi.getSubscription({ signal }),
     enabled: hasTokens,
     staleTime: 2 * 60_000,
+  });
+}
+
+export function useActivePlan() {
+  const hasTokens = useAuthStore((s) => Boolean(s.accessToken));
+  return useQuery({
+    queryKey: queryKeys.subscription.activePlan(),
+    queryFn: ({ signal }) => subApi.getActivePlan({ signal }),
+    enabled: hasTokens,
+    staleTime: 60_000,
   });
 }
 

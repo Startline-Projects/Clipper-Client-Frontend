@@ -1,18 +1,17 @@
 import { useState } from 'react';
-import { Image, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useQueryClient } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CardField, type CardFieldInput } from '@stripe/stripe-react-native';
 import Header from '@/components/ui/Header';
 import Btn from '@/components/ui/Btn';
+import Card from '@/components/ui/Card';
 import Icon from '@/components/ui/Icon';
 import PlanSelector from '@/components/subscription/PlanSelector';
-import { useCreateSubscription, useSubscription } from '@/lib/hooks/useSubscription';
+import StripeCardSheet from '@/components/stripe/StripeCardSheet';
+import { useCreateSubscription } from '@/lib/hooks/useSubscription';
+import { usePaymentMethodStore } from '@/lib/stores/payment-method';
 import { useColors } from '@/lib/theme/colors';
-import { collectPaymentMethod, confirmPayment } from '@/lib/utils/stripe';
 import { showSuccessToast, showErrorToast } from '@/lib/feedback/toast';
-import { queryKeys } from '@/lib/hooks/queryKeys';
 import type { IconName } from '@/components/ui/Icon';
 
 const VALUE_PROPS: { icon: IconName; title: string; sub: string }[] = [
@@ -41,59 +40,48 @@ const VALUE_PROPS: { icon: IconName; title: string; sub: string }[] = [
 export default function PaywallScreen() {
   const router = useRouter();
   const colors = useColors();
-  const qc = useQueryClient();
   const createSub = useCreateSubscription();
-  const { refetch: refetchSub } = useSubscription();
+  const savedCard = usePaymentMethodStore((s) => s.savedCard);
+  const setSavedCard = usePaymentMethodStore((s) => s.setSavedCard);
+  const setSubscribedPlan = usePaymentMethodStore((s) => s.setSubscribedPlan);
   const [plan, setPlan] = useState<'monthly' | 'yearly' | null>(null);
   const [loading, setLoading] = useState(false);
-  const [cardComplete, setCardComplete] = useState(false);
+  const [showCardSheet, setShowCardSheet] = useState(false);
+  const [useExistingCard, setUseExistingCard] = useState(true);
 
-  const handleSubscribe = async () => {
-    if (!plan || loading) return;
+  const handleSubscribe = () => {
+    if (!plan) return;
+    if (savedCard && useExistingCard) {
+      subscribe(savedCard.paymentMethodId);
+    } else {
+      setShowCardSheet(true);
+    }
+  };
+
+  const subscribe = async (paymentMethodId: string) => {
+    if (!plan) return;
     setLoading(true);
 
     try {
-      const pmResult = await collectPaymentMethod();
-      if (!pmResult) {
-        setLoading(false);
-        return;
-      }
+      await createSub.mutateAsync({ plan, paymentMethodId });
 
-      const result = await createSub.mutateAsync({
-        plan,
-        paymentMethodId: pmResult.paymentMethodId,
-      });
-
-      if (result.clientSecret) {
-        const payment = await confirmPayment(result.clientSecret);
-        if (!payment.success) {
-          showErrorToast(null, payment.error ?? 'Payment failed. Try again.');
-          setLoading(false);
-          return;
-        }
-      }
-
-      let confirmedSub = null;
-      for (let i = 0; i < 10; i++) {
-        const { data: subState } = await refetchSub();
-        if (subState?.status === 'active') {
-          confirmedSub = subState;
-          break;
-        }
-        await new Promise((r) => setTimeout(r, 1500));
-      }
-
-      if (confirmedSub) {
-        qc.setQueryData(queryKeys.subscription.me(), confirmedSub);
-      }
+      // Persist locally so UI stays correct even if query refetches stale backend data
+      setSubscribedPlan(plan);
 
       showSuccessToast('Welcome to Clipper!', 'Subscription active');
       router.replace('/(app)/(tabs)/explore');
-    } catch {
-      showErrorToast(null, 'Could not complete subscription. Try again.');
+    } catch (err) {
+      console.error('[Paywall] subscription error:', err);
+      showErrorToast(err, 'Could not complete subscription. Try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePaymentMethod = ({ paymentMethodId, last4, brand }: { paymentMethodId: string; last4?: string | null; brand?: string | null }) => {
+    setShowCardSheet(false);
+    if (last4 && brand) setSavedCard({ paymentMethodId, last4, brand });
+    subscribe(paymentMethodId);
   };
 
   return (
@@ -148,41 +136,74 @@ export default function PaywallScreen() {
 
         <PlanSelector selected={plan} onSelect={setPlan} />
 
-        <View className="mt-6 mb-2">
-          <Text className="text-[13px] font-semibold text-secondary mb-[6px] tracking-[-0.1px]">
-            Payment Details
-          </Text>
-          <CardField
-            postalCodeEnabled={false}
-            placeholders={{ number: '4242 4242 4242 4242' }}
-            cardStyle={{
-              backgroundColor: colors.surface,
-              textColor: colors.ink,
-              placeholderColor: colors.tertiary,
-              borderColor: colors.separatorOpaque,
-              borderWidth: 1.5,
-              borderRadius: 16,
-              fontSize: 15,
-            }}
-            style={{ width: '100%', height: 50 }}
-            onCardChange={(details: CardFieldInput.Details) => {
-              setCardComplete(details.complete);
-            }}
-          />
-        </View>
+        {plan && (
+          <View className="mt-6">
+            <Text className="text-[13px] font-semibold text-secondary mb-3">
+              Payment Method
+            </Text>
 
-        <View className="mt-4">
+            {savedCard && (
+              <Pressable onPress={() => setUseExistingCard(true)}>
+                <Card
+                  className="p-4 mb-[10px] flex-row items-center gap-3"
+                  style={useExistingCard ? { borderWidth: 1.5, borderColor: colors.brand } : undefined}
+                >
+                  <View
+                    className="w-9 h-9 rounded-full items-center justify-center"
+                    style={{ backgroundColor: colors.brandPale }}
+                  >
+                    <Icon name="card" size={16} color={colors.brand} />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-[15px] font-semibold text-ink">
+                      {savedCard.brand.charAt(0).toUpperCase() + savedCard.brand.slice(1)} •••• {savedCard.last4}
+                    </Text>
+                    <Text className="text-[12px] text-secondary">Saved card</Text>
+                  </View>
+                  {useExistingCard && (
+                    <Icon name="check" size={16} color={colors.brand} />
+                  )}
+                </Card>
+              </Pressable>
+            )}
+
+            <Pressable onPress={() => setUseExistingCard(false)}>
+              <Card
+                className="p-4 flex-row items-center gap-3"
+                style={!useExistingCard || !savedCard ? { borderWidth: 1.5, borderColor: colors.brand } : undefined}
+              >
+                <View
+                  className="w-9 h-9 rounded-full items-center justify-center"
+                  style={{ backgroundColor: colors.bgWarm }}
+                >
+                  <Icon name="plus" size={16} color={colors.ink} />
+                </View>
+                <Text className="text-[15px] font-medium text-ink">
+                  Add new card
+                </Text>
+              </Card>
+            </Pressable>
+          </View>
+        )}
+
+        <View className="mt-6">
           <Btn
             label={loading ? 'Processing...' : 'Subscribe'}
             full
             onPress={handleSubscribe}
-            disabled={!plan || !cardComplete || loading}
+            disabled={!plan || loading}
           />
         </View>
 
         <Text className="text-[11px] text-tertiary text-center mt-4 leading-[16px]">
           Cancel anytime from your profile settings.
         </Text>
+
+        <StripeCardSheet
+          visible={showCardSheet}
+          onPaymentMethod={handlePaymentMethod}
+          onCancel={() => setShowCardSheet(false)}
+        />
       </ScrollView>
     </SafeAreaView>
   );

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
@@ -60,7 +60,7 @@ export default function RecurringDetailScreen() {
   const router = useRouter();
   const colors = useColors();
   const { recurringId } = useLocalSearchParams<{ recurringId: string }>();
-  const { data: recurring, isLoading, isError, error, refetch } =
+  const { data: recurring, isLoading, isError, error, refetch, isRefetching } =
     useRecurringDetail(recurringId);
   const pause = usePauseRecurring();
   const resume = useResumeRecurring();
@@ -132,7 +132,13 @@ export default function RecurringDetailScreen() {
         <Header title="Recurring Detail" onBack={() => router.back()} />
       </View>
 
-      <ScrollView className="flex-1 px-5" contentContainerClassName="pb-8">
+      <ScrollView
+        className="flex-1 px-5"
+        contentContainerClassName="pb-8"
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+        }
+      >
         {/* Header card */}
         <Card className="p-5 mb-4">
           <View className="flex-row items-center gap-3 pb-4 mb-4 border-b border-separator">

@@ -23,8 +23,7 @@
   --color-brand-accent: #1D4ED8;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
+.dark {
   --color-ink: #F5F5F7;
   --color-bg: #000000;
   --color-bg-warm: #1C1C1E;
@@ -42,6 +41,5 @@
   --color-brand: #3B82F6;
   --color-brand-light: #60A5FA;
   --color-brand-pale: #1E3A5F;
-    --color-brand-accent: #2563EB;
-  }
+  --color-brand-accent: #2563EB;
 }

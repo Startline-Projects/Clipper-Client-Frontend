@@ -7,11 +7,16 @@ export function useBarberChat(barberId: string, barberName: string) {
   const startConvo = useStartConversation();
 
   const openChat = () => {
+    if (!barberId) {
+      Alert.alert('Could not open chat', 'Barber information not available.');
+      return;
+    }
     startConvo.mutate(barberId, {
       onSuccess: (conversation) => {
         router.push(`/(app)/(tabs)/messages/${conversation.id}`);
       },
-      onError: () => {
+      onError: (err) => {
+        console.error('[useBarberChat] error:', err);
         Alert.alert(
           'Could not open chat',
           `Unable to message ${barberName}. Please try again.`,

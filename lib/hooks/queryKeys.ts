@@ -37,6 +37,7 @@ export const queryKeys = {
   subscription: {
     all: ['subscription'] as const,
     me: () => ['subscription', 'me'] as const,
+    activePlan: () => ['subscription', 'activePlan'] as const,
   },
 
   barbers: {

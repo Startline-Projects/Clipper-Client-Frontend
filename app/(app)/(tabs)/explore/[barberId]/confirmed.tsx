@@ -122,10 +122,10 @@ export default function ConfirmedScreen() {
             />
           )}
           <Btn
-            label="Back to Home"
+            label="Back to Explore"
             variant="ghost"
             full
-            onPress={() => router.replace('/(app)/(tabs)/home')}
+            onPress={() => router.replace('/(app)/(tabs)/explore')}
           />
         </View>
       </ScrollView>

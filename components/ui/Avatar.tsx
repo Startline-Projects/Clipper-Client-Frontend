@@ -6,6 +6,7 @@ export interface AvatarProps {
   name: string;
   size?: number;
   uri?: string;
+  radius?: number;
 }
 
 const gradients = {
@@ -13,7 +14,7 @@ const gradients = {
   dark: ['#3A3A3C', '#48484A'] as const,
 };
 
-export default function Avatar({ name, size = 40, uri }: AvatarProps) {
+export default function Avatar({ name, size = 40, uri, radius: radiusProp }: AvatarProps) {
   const theme = useTheme();
   const initials = (name || '?')
     .split(' ')
@@ -22,7 +23,7 @@ export default function Avatar({ name, size = 40, uri }: AvatarProps) {
     .slice(0, 2)
     .toUpperCase();
 
-  const radius = size * 0.35;
+  const radius = radiusProp ?? size * 0.35;
   const containerStyle = {
     width: size,
     height: size,

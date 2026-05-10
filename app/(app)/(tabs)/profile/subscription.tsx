@@ -1,40 +1,42 @@
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CardField, type CardFieldInput } from '@stripe/stripe-react-native';
 import Header from '@/components/ui/Header';
 import Btn from '@/components/ui/Btn';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Icon from '@/components/ui/Icon';
 import LoadingSpinner from '@/components/feedback/LoadingSpinner';
+import StripeCardSheet from '@/components/stripe/StripeCardSheet';
 import {
   useSubscription,
   useSwitchPlan,
   useCancelSubscription,
   useReplacePaymentMethod,
 } from '@/lib/hooks/useSubscription';
+import { usePaymentMethodStore } from '@/lib/stores/payment-method';
 import { useColors } from '@/lib/theme/colors';
 import { formatDate } from '@/lib/utils/format';
-import { collectPaymentMethod } from '@/lib/utils/stripe';
 import { confirm } from '@/lib/feedback/confirm';
 import { showSuccessToast, showErrorToast } from '@/lib/feedback/toast';
 
 export default function SubscriptionScreen() {
   const router = useRouter();
   const colors = useColors();
-  const { data: sub, isLoading } = useSubscription();
+  const { data: sub, isLoading, isRefetching, refetch } = useSubscription();
+  const subscribedPlan = usePaymentMethodStore((s) => s.subscribedPlan);
+  const clearSubscribedPlan = usePaymentMethodStore((s) => s.clearSubscribedPlan);
   const switchPlan = useSwitchPlan();
   const cancelSub = useCancelSubscription();
   const replaceCard = useReplacePaymentMethod();
-  const [showCardField, setShowCardField] = useState(false);
-  const [cardComplete, setCardComplete] = useState(false);
+  const [showCardSheet, setShowCardSheet] = useState(false);
 
   if (isLoading || !sub) return <LoadingSpinner />;
 
-  const isActive = sub.status === 'active';
-  const isInactive = sub.status === 'inactive';
+  // Use local store as fallback when backend hasn't caught up (webhook delay)
+  const isActive = sub.status === 'active' || (sub.status === 'inactive' && subscribedPlan !== null);
+  const isInactive = sub.status === 'inactive' && subscribedPlan === null;
   const isPastDue = sub.status === 'past_due';
 
   const handleCancel = async () => {
@@ -47,7 +49,10 @@ export default function SubscriptionScreen() {
     });
     if (!yes) return;
     cancelSub.mutate(undefined, {
-      onSuccess: () => showSuccessToast('Subscription cancelled'),
+      onSuccess: () => {
+        clearSubscribedPlan();
+        showSuccessToast('Subscription cancelled');
+      },
       onError: (err) => showErrorToast(err),
     });
   };
@@ -65,22 +70,16 @@ export default function SubscriptionScreen() {
     });
   };
 
-  const handleUpdateCard = async () => {
-    if (!showCardField) {
-      setShowCardField(true);
-      return;
-    }
-    if (!cardComplete) return;
-    const result = await collectPaymentMethod();
-    if (!result) return;
+  const handleUpdateCard = () => {
+    setShowCardSheet(true);
+  };
+
+  const handlePaymentMethod = ({ paymentMethodId }: { paymentMethodId: string }) => {
+    setShowCardSheet(false);
     replaceCard.mutate(
-      { paymentMethodId: result.paymentMethodId },
+      { paymentMethodId },
       {
-        onSuccess: () => {
-          showSuccessToast('Payment method updated');
-          setShowCardField(false);
-          setCardComplete(false);
-        },
+        onSuccess: () => showSuccessToast('Payment method updated'),
         onError: (err) => showErrorToast(err),
       },
     );
@@ -92,7 +91,13 @@ export default function SubscriptionScreen() {
         <Header title="Subscription" onBack={() => router.back()} />
       </View>
 
-      <ScrollView className="flex-1 px-5" contentContainerClassName="pb-8">
+      <ScrollView
+        className="flex-1 px-5"
+        contentContainerClassName="pb-8"
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+        }
+      >
         <Card className="p-5 mb-4">
           <View className="flex-row items-center gap-2 mb-4">
             <Text className="text-[18px] font-bold text-ink tracking-[-0.3px]">
@@ -100,7 +105,7 @@ export default function SubscriptionScreen() {
             </Text>
             {isActive && !sub.cancelAtPeriodEnd && (
               <Badge
-                label={sub.plan === 'yearly' ? 'Yearly' : 'Monthly'}
+                label={(sub.plan ?? subscribedPlan) === 'yearly' ? 'Yearly' : 'Monthly'}
                 color={colors.brand}
                 bg={colors.brandPale}
                 small
@@ -111,12 +116,12 @@ export default function SubscriptionScreen() {
             )}
           </View>
 
-          {isActive && sub.plan && (
+          {isActive && (sub.plan || subscribedPlan) && (
             <>
               <View className="flex-row justify-between py-[10px] border-b-[0.5px] border-separator">
                 <Text className="text-[14px] text-secondary">Plan</Text>
                 <Text className="text-[14px] font-semibold text-ink">
-                  {sub.plan === 'yearly' ? '$9.99/year' : '$0.99/month'}
+                  {(sub.plan ?? subscribedPlan) === 'yearly' ? '$9.99/year' : '$0.99/month'}
                 </Text>
               </View>
               {sub.currentPeriodEnd && (
@@ -174,32 +179,13 @@ export default function SubscriptionScreen() {
                   disabled={switchPlan.isPending}
                 />
               )}
-              {showCardField && (
-                <CardField
-                  postalCodeEnabled={false}
-                  placeholders={{ number: '4242 4242 4242 4242' }}
-                  cardStyle={{
-                    backgroundColor: colors.surface,
-                    textColor: colors.ink,
-                    placeholderColor: colors.tertiary,
-                    borderColor: colors.separatorOpaque,
-                    borderWidth: 1.5,
-                    borderRadius: 16,
-                    fontSize: 15,
-                  }}
-                  style={{ width: '100%', height: 50 }}
-                  onCardChange={(details: CardFieldInput.Details) => {
-                    setCardComplete(details.complete);
-                  }}
-                />
-              )}
               <Btn
-                label={replaceCard.isPending ? 'Updating...' : showCardField ? 'Save Card' : 'Update Payment Method'}
+                label={replaceCard.isPending ? 'Updating...' : 'Update Payment Method'}
                 variant="secondary"
                 full
                 icon="card"
                 onPress={handleUpdateCard}
-                disabled={replaceCard.isPending || (showCardField && !cardComplete)}
+                disabled={replaceCard.isPending}
               />
               <Btn
                 label="Cancel Subscription"
@@ -212,37 +198,22 @@ export default function SubscriptionScreen() {
           )}
 
           {isPastDue && (
-            <>
-              {showCardField && (
-                <CardField
-                  postalCodeEnabled={false}
-                  placeholders={{ number: '4242 4242 4242 4242' }}
-                  cardStyle={{
-                    backgroundColor: colors.surface,
-                    textColor: colors.ink,
-                    placeholderColor: colors.tertiary,
-                    borderColor: colors.separatorOpaque,
-                    borderWidth: 1.5,
-                    borderRadius: 16,
-                    fontSize: 15,
-                  }}
-                  style={{ width: '100%', height: 50 }}
-                  onCardChange={(details: CardFieldInput.Details) => {
-                    setCardComplete(details.complete);
-                  }}
-                />
-              )}
-              <Btn
-                label={replaceCard.isPending ? 'Updating...' : showCardField ? 'Save Card' : 'Update Payment Method'}
-                full
-                icon="card"
-                onPress={handleUpdateCard}
-                disabled={replaceCard.isPending || (showCardField && !cardComplete)}
-              />
-            </>
+            <Btn
+              label={replaceCard.isPending ? 'Updating...' : 'Update Payment Method'}
+              full
+              icon="card"
+              onPress={handleUpdateCard}
+              disabled={replaceCard.isPending}
+            />
           )}
         </View>
       </ScrollView>
+
+      <StripeCardSheet
+        visible={showCardSheet}
+        onPaymentMethod={handlePaymentMethod}
+        onCancel={() => setShowCardSheet(false)}
+      />
     </SafeAreaView>
   );
 }

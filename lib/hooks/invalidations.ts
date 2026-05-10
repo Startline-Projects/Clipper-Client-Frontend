@@ -8,6 +8,7 @@ export const invalidations = {
 
   subscriptionChanged: (qc: QueryClient) => {
     qc.invalidateQueries({ queryKey: queryKeys.subscription.all });
+    qc.invalidateQueries({ queryKey: queryKeys.subscription.activePlan() });
     qc.invalidateQueries({ queryKey: queryKeys.profile.me() });
   },
 

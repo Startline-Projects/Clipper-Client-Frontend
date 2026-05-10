@@ -1,4 +1,4 @@
-import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
+import { Linking, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
@@ -18,6 +18,7 @@ import { useBarberDetail } from '@/lib/hooks/useBarbers';
 import { useBarberChat } from '@/lib/hooks/useBarberChat';
 import { useLocation } from '@/lib/hooks/useLocation';
 import { useSubscription } from '@/lib/hooks/useSubscription';
+import { useSubscribedPlan } from '@/lib/stores/payment-method';
 import { useColors } from '@/lib/theme/colors';
 import { formatCurrency } from '@/lib/utils/format';
 
@@ -30,13 +31,14 @@ export default function BarberDetailScreen() {
     latitude !== null && longitude !== null
       ? { latitude, longitude }
       : null;
-  const { data, isLoading, isError, error, refetch } = useBarberDetail(barberId, coords);
+  const { data, isLoading, isError, error, refetch, isRefetching } = useBarberDetail(barberId, coords);
 
   const barberName = data?.barber?.name ?? '';
   const { openChat, isPending: chatPending } = useBarberChat(barberId, barberName);
   const { data: subscription } = useSubscription();
+  const subscribedPlan = useSubscribedPlan();
   const isSubscribed =
-    subscription?.status === 'active' || subscription?.status === 'past_due';
+    subscription?.status === 'active' || subscription?.status === 'past_due' || subscribedPlan !== null;
 
   if (isLoading) return <BarberDetailSkeleton />;
   if (isError || !data) return <ErrorView error={error} onRetry={refetch} />;
@@ -45,7 +47,13 @@ export default function BarberDetailScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={['top']}>
-      <ScrollView className="flex-1" contentContainerClassName="pb-8">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="pb-8"
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+        }
+      >
         <View className="px-5">
           <Header
             title={barber.name}
@@ -125,7 +133,7 @@ export default function BarberDetailScreen() {
             <Card
               className="mt-4 p-[14px] mb-0 border-0 shadow-none"
               style={{
-                backgroundColor: '#1A1200',
+                backgroundColor: colors.bgWarm,
                 borderLeftWidth: 3,
                 borderLeftColor: '#C47F17',
               }}
@@ -134,7 +142,7 @@ export default function BarberDetailScreen() {
                 <Icon name="repeat" size={16} color="#C47F17" />
                 <View>
                   <Text className="text-[14px] font-semibold" style={{ color: '#C47F17' }}>
-                    Recurring slots available
+                    Recurring available
                   </Text>
                   <Text className="text-[12px] text-secondary mt-[2px]">
                     Lock in a weekly or biweekly appointment
@@ -144,31 +152,27 @@ export default function BarberDetailScreen() {
             </Card>
           )}
 
-          <View className="flex-row gap-[10px] mt-[18px] w-full">
-            <View className="flex-1">
+          <View className="gap-[10px] mt-[18px] w-full items-center">
+            <Btn
+              label="Book Now"
+              full
+              onPress={() =>
+                isSubscribed
+                  ? router.push(`/(app)/(tabs)/explore/${barberId}/availability`)
+                  : router.push('/(app)/paywall')
+              }
+            />
+            {barber.recurringAvailable && (
               <Btn
-                label="Book Now"
+                label="Recurring Slot"
+                variant="secondary"
                 full
                 onPress={() =>
                   isSubscribed
-                    ? router.push(`/(app)/(tabs)/explore/${barberId}/availability`)
+                    ? router.push(`/(app)/(tabs)/explore/${barberId}/recurring-services`)
                     : router.push('/(app)/paywall')
                 }
               />
-            </View>
-            {barber.recurringAvailable && (
-              <View className="flex-1">
-                <Btn
-                  label="Recurring Slot"
-                  variant="secondary"
-                  full
-                  onPress={() =>
-                    isSubscribed
-                      ? router.push(`/(app)/(tabs)/explore/${barberId}/recurring-services`)
-                      : router.push('/(app)/paywall')
-                  }
-                />
-              </View>
             )}
           </View>
         </View>

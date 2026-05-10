@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
@@ -49,7 +49,7 @@ export default function ArrangementDetailScreen() {
   const router = useRouter();
   const colors = useColors();
   const { arrangementId } = useLocalSearchParams<{ arrangementId: string }>();
-  const { data: arrangement, isLoading } = useArrangementDetail(arrangementId);
+  const { data: arrangement, isLoading, isRefetching, refetch } = useArrangementDetail(arrangementId);
   const accept = useAcceptArrangement();
   const reject = useRejectArrangement();
 
@@ -96,7 +96,13 @@ export default function ArrangementDetailScreen() {
         <Header title="Arrangement" onBack={() => router.back()} />
       </View>
 
-      <ScrollView className="flex-1 px-5" contentContainerClassName="pb-8">
+      <ScrollView
+        className="flex-1 px-5"
+        contentContainerClassName="pb-8"
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+        }
+      >
         {/* Barber info */}
         <Card className="p-5 mb-4">
           <View className="flex-row items-center gap-3 pb-4 mb-4 border-b border-separator">

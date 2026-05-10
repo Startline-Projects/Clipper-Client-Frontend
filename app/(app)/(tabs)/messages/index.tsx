@@ -33,12 +33,16 @@ export default function MessagesScreen() {
   const renderItem = ({ item, index }: { item: Conversation; index: number }) => (
     <ConversationRow
       name={item.otherParty.name}
+      avatarUri={item.otherParty.profilePhotoUrl}
       lastMessage={item.lastMessageBody ?? 'No messages yet'}
       time={item.lastMessageAt ? formatRelativeTime(item.lastMessageAt) : ''}
       unread={item.unreadCount > 0}
       isLast={index === conversations.length - 1}
       onPress={() =>
-        router.push(`/(app)/(tabs)/messages/${item.id}`)
+        router.push({
+          pathname: `/(app)/(tabs)/messages/${item.id}`,
+          params: { name: item.otherParty.name, photo: item.otherParty.profilePhotoUrl ?? '' },
+        })
       }
     />
   );

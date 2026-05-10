@@ -77,7 +77,7 @@ export default function ExploreScreen() {
             </Text>
           </View>
           <Pressable
-            onPress={() => router.push('/(app)/(tabs)/home/notifications')}
+            onPress={() => router.push('/(app)/(tabs)/explore/notifications')}
             className="w-10 h-10 rounded-full bg-bg-warm items-center justify-center"
           >
             <Icon name="bell" size={19} color={colors.ink} />
@@ -109,7 +109,7 @@ export default function ExploreScreen() {
             onPress={() => setSort('top_rated')}
           />
           <Pill
-            label="Recurring available"
+            label="Recurring"
             active={recurringFilter === 'available'}
             color="#C47F17"
             onPress={() =>

@@ -2,11 +2,9 @@ import { Tabs } from 'expo-router';
 import { View, Text } from 'react-native';
 import Icon, { type IconName } from '@/components/ui/Icon';
 import { useColors } from '@/lib/theme/colors';
-import { useUnreadCount } from '@/lib/hooks/useNotifications';
 import { useConversations } from '@/lib/hooks/useConversations';
 
 const tabs: { name: string; title: string; icon: IconName }[] = [
-  { name: 'home', title: 'Home', icon: 'home' },
   { name: 'explore', title: 'Explore', icon: 'compass' },
   { name: 'bookings', title: 'Bookings', icon: 'bookings' },
   { name: 'messages', title: 'Chats', icon: 'chat' },
@@ -40,7 +38,6 @@ function TabIcon({
 
 export default function TabsLayout() {
   const colors = useColors();
-  const { data: unreadCount } = useUnreadCount();
   const { data: convoData } = useConversations();
   const unreadMessages =
     convoData?.pages
@@ -79,11 +76,9 @@ export default function TabsLayout() {
                 color={color}
                 focused={focused}
                 badge={
-                  tab.name === 'home'
-                    ? unreadCount
-                    : tab.name === 'messages'
-                      ? unreadMessages || undefined
-                      : undefined
+                  tab.name === 'messages'
+                    ? unreadMessages || undefined
+                    : undefined
                 }
               />
             ),

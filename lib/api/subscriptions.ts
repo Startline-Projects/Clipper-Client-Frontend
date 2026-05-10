@@ -17,6 +17,14 @@ const SubscriptionStateSchema = z.object({
   cancelAtPeriodEnd: z.boolean(),
 });
 
+const ActivePlanResponseSchema = z.object({
+  hasActivePlan: z.boolean(),
+  plan: z.enum(['monthly', 'yearly']).nullable(),
+  status: z.enum(['inactive', 'active', 'past_due', 'cancelled']),
+  currentPeriodEnd: z.string().nullable(),
+  cancelAtPeriodEnd: z.boolean(),
+});
+
 const CancelSubscriptionResponseSchema = z.object({
   status: z.literal('active'),
   cancelAtPeriodEnd: z.literal(true),
@@ -32,6 +40,7 @@ const CardActionResponseSchema = z.object({
 
 export type CreateSubscriptionResponse = z.infer<typeof CreateSubscriptionResponseSchema>;
 export type SubscriptionState = z.infer<typeof SubscriptionStateSchema>;
+export type ActivePlanResponse = z.infer<typeof ActivePlanResponseSchema>;
 export type CancelSubscriptionResponse = z.infer<typeof CancelSubscriptionResponseSchema>;
 export type CardActionResponse = z.infer<typeof CardActionResponseSchema>;
 
@@ -63,6 +72,15 @@ export async function getSubscription(
     signal: opts.signal,
   });
   return SubscriptionStateSchema.parse(data);
+}
+
+export async function getActivePlan(
+  opts: RequestOptions = {},
+): Promise<ActivePlanResponse> {
+  const { data } = await apiClient.get('/subscriptions/me/active-plan', {
+    signal: opts.signal,
+  });
+  return ActivePlanResponseSchema.parse(data);
 }
 
 export async function switchPlan(

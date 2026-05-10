@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
@@ -29,7 +29,7 @@ export default function BookingDetailScreen() {
   const router = useRouter();
   const colors = useColors();
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
-  const { data: booking, isLoading, isError, error, refetch } =
+  const { data: booking, isLoading, isError, error, refetch, isRefetching } =
     useBookingDetail(bookingId);
   const cancel = useCancelBooking();
   const [cancelling, setCancelling] = useState(false);
@@ -67,7 +67,13 @@ export default function BookingDetailScreen() {
         <Header title="Booking Detail" onBack={() => router.back()} />
       </View>
 
-      <ScrollView className="flex-1 px-5" contentContainerClassName="pb-8">
+      <ScrollView
+        className="flex-1 px-5"
+        contentContainerClassName="pb-8"
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+        }
+      >
         <Card className="p-5 mb-4">
           <View className="flex-row items-center gap-3 pb-4 mb-4 border-b border-separator">
             <Avatar

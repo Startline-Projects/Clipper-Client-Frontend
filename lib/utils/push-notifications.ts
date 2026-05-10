@@ -81,7 +81,8 @@ export function handleNotificationTap(
   >;
 
   if (data.conversationId) {
-    router.push(`/(app)/(tabs)/messages/${data.conversationId}`);
+    router.navigate('/(app)/(tabs)/messages');
+    setTimeout(() => router.push(`/(app)/(tabs)/messages/${data.conversationId}`), 50);
     return;
   }
 
@@ -91,25 +92,24 @@ export function handleNotificationTap(
     data.type === 'recurring_arrangement_rejected';
 
   if (isArrangementType && data.recurringBookingId) {
-    router.push(
-      `/(app)/(tabs)/bookings/arrangements/${data.recurringBookingId}`,
-    );
+    router.navigate('/(app)/(tabs)/bookings');
+    setTimeout(() => router.push(`/(app)/(tabs)/bookings/arrangements/${data.recurringBookingId}`), 50);
     return;
   }
 
   if (data.bookingId) {
-    router.push(`/(app)/(tabs)/bookings/${data.bookingId}`);
+    router.navigate('/(app)/(tabs)/bookings');
+    setTimeout(() => router.push(`/(app)/(tabs)/bookings/${data.bookingId}`), 50);
     return;
   }
 
   if (data.recurringBookingId) {
-    router.push(
-      `/(app)/(tabs)/bookings/recurring/${data.recurringBookingId}`,
-    );
+    router.navigate('/(app)/(tabs)/bookings');
+    setTimeout(() => router.push(`/(app)/(tabs)/bookings/recurring/${data.recurringBookingId}`), 50);
     return;
   }
 
-  router.push('/(app)/(tabs)/home/notifications');
+  router.navigate('/(app)/(tabs)/explore/notifications');
 }
 
 export function setupNotificationListeners(): () => void {

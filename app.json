@@ -27,13 +27,12 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0a1628"
       },
+      "softwareKeyboardLayoutMode": "resize",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
+        "ACCESS_COARSE_LOCATION"
       ],
       "package": "com.yahiaaldeeb.ClipperClient"
     },
@@ -46,20 +45,20 @@
       "expo-secure-store",
       "expo-web-browser",
       "expo-notifications",
-      "expo-location",
-      [
-        "@stripe/stripe-react-native",
-        {
-          "merchantIdentifier": "merchant.com.clipper.client",
-          "enableGooglePay": true
-        }
-      ]
+      "expo-location"
     ],
     "extra": {
       "router": {},
       "eas": {
         "projectId": "4a64767b-ff46-4507-88d0-ce0315a4bbfe"
       }
+    },
+    "owner": "yahiaaldeeb",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/4a64767b-ff46-4507-88d0-ce0315a4bbfe"
     }
   }
 }

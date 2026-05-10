@@ -5,6 +5,7 @@ import { useColors } from '@/lib/theme/colors';
 
 interface ConversationRowProps {
   name: string;
+  avatarUri?: string | null;
   lastMessage: string;
   time: string;
   unread?: boolean;
@@ -14,6 +15,7 @@ interface ConversationRowProps {
 
 export default function ConversationRow({
   name,
+  avatarUri,
   lastMessage,
   time,
   unread,
@@ -30,7 +32,7 @@ export default function ConversationRow({
       }`}
     >
       <View className="relative">
-        <Avatar name={name} size={46} />
+        <Avatar name={name} size={46} uri={avatarUri ?? undefined} />
         {unread && (
           <View className="absolute -top-[1px] -right-[1px] w-3 h-3 rounded-full bg-blue border-[2.5px] border-surface" />
         )}

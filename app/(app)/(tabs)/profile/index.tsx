@@ -1,33 +1,29 @@
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Avatar from '@/components/ui/Avatar';
 import Icon from '@/components/ui/Icon';
 import Card from '@/components/ui/Card';
-import Toggle from '@/components/ui/Toggle';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import { ProfileSkeleton } from '@/components/feedback/SkeletonVariants';
 import ErrorView from '@/components/feedback/ErrorView';
 import { useProfile } from '@/lib/hooks/useProfile';
 import { useLogout } from '@/lib/hooks/useAuth';
-import { useTheme } from '@/lib/hooks/useTheme';
-import { useThemePreference, useSetThemePreference } from '@/lib/stores/theme';
 import { useColors } from '@/lib/theme/colors';
 import { confirm } from '@/lib/feedback/confirm';
 
 const MENU_ROWS = [
   { key: 'edit', icon: 'user' as const, label: 'Edit Profile' },
   { key: 'subscription', icon: 'card' as const, label: 'Subscription' },
+  { key: 'payment', icon: 'card' as const, label: 'Payment Method' },
   { key: 'password', icon: 'shield' as const, label: 'Change Password' },
 ] as const;
 
 export default function ProfileScreen() {
   const router = useRouter();
   const colors = useColors();
-  const { data: profile, isLoading, isError, error, refetch } = useProfile();
+  const { data: profile, isLoading, isError, error, refetch, isRefetching } = useProfile();
   const logout = useLogout();
-  const themePref = useThemePreference();
-  const setThemePref = useSetThemePreference();
-  const resolvedTheme = useTheme();
 
   const handleMenuPress = (key: string) => {
     switch (key) {
@@ -36,6 +32,9 @@ export default function ProfileScreen() {
         break;
       case 'subscription':
         router.push('/(app)/(tabs)/profile/subscription');
+        break;
+      case 'payment':
+        router.push('/(app)/(tabs)/profile/payment-method');
         break;
       case 'password':
         router.push('/(app)/(tabs)/profile/change-password');
@@ -61,7 +60,13 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={['top']}>
-      <ScrollView className="flex-1 px-5" contentContainerClassName="pb-8 pt-4">
+      <ScrollView
+        className="flex-1 px-5"
+        contentContainerClassName="pb-8 pt-4"
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+        }
+      >
         <View className="items-center mb-6">
           <Avatar
             name={profile.name}
@@ -102,20 +107,7 @@ export default function ProfileScreen() {
           <Text className="text-[13px] font-semibold text-secondary uppercase tracking-[0.5px] pt-3 pb-1">
             Appearance
           </Text>
-          <Toggle
-            label="Dark Mode"
-            sub={
-              themePref === 'system'
-                ? `System (${resolvedTheme})`
-                : resolvedTheme === 'dark'
-                  ? 'On'
-                  : 'Off'
-            }
-            on={resolvedTheme === 'dark'}
-            onToggle={() =>
-              setThemePref(resolvedTheme === 'dark' ? 'light' : 'dark')
-            }
-          />
+          <ThemeToggle />
         </Card>
 
         <Pressable

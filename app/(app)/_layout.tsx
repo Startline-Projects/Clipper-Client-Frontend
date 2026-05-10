@@ -3,6 +3,7 @@ import { Redirect, Stack } from 'expo-router';
 import { useAuthStore } from '@/lib/stores/auth.store';
 import { useProfile } from '@/lib/hooks/useProfile';
 import { useSubscriptionGate } from '@/lib/hooks/useSubscriptionGate';
+import { useRealtimeAuth } from '@/lib/hooks/useRealtimeAuth';
 import { useRealtimeUnread } from '@/lib/hooks/useRealtimeUnread';
 import {
   registerPushToken,
@@ -14,6 +15,7 @@ export default function AppLayout() {
 
   useProfile();
   useSubscriptionGate();
+  useRealtimeAuth();
   useRealtimeUnread();
 
   useEffect(() => {

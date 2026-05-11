@@ -20,8 +20,13 @@ declare module '@tanstack/react-query' {
 const STALE_TIME = 2 * 60 * 1000;
 const GC_TIME = 10 * 60 * 1000;
 
+function isSessionExpired(error: unknown): boolean {
+  return (error as Partial<ApiError>)?.sessionExpired === true;
+}
+
 const qCache = new QueryCache({
   onError: (error, query) => {
+    if (isSessionExpired(error)) return;
     if (query.state.data !== undefined && query.meta?.silent !== true) {
       showErrorToast(error);
     }
@@ -30,6 +35,7 @@ const qCache = new QueryCache({
 
 const mCache = new MutationCache({
   onError: (error, _variables, _context, mutation) => {
+    if (isSessionExpired(error)) return;
     if (mutation.meta?.silent !== true) {
       showErrorToast(error);
     }

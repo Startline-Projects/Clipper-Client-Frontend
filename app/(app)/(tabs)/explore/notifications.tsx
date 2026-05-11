@@ -41,9 +41,12 @@ export default function NotificationsScreen() {
           `/(app)/(tabs)/bookings/recurring/${notification.recurringBookingId}`,
         );
       } else if (notification.conversationId) {
-        router.push(
-          `/(app)/(tabs)/messages/${notification.conversationId}`,
-        );
+        router.navigate('/(app)/(tabs)/messages');
+        setTimeout(() => {
+          router.push(
+            `/(app)/(tabs)/messages/${notification.conversationId}`,
+          );
+        }, 50);
       }
     },
     [markRead, router],

@@ -42,6 +42,7 @@ export function useLogin() {
 export function useLogout() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { silent: true },
     mutationFn: async () => {
       const { logout } = useAuthStore.getState();
       try {

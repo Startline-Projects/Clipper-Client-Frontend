@@ -13,7 +13,10 @@ export function useBarberChat(barberId: string, barberName: string) {
     }
     startConvo.mutate(barberId, {
       onSuccess: (conversation) => {
-        router.push(`/(app)/(tabs)/messages/${conversation.id}`);
+        router.navigate('/(app)/(tabs)/messages');
+        setTimeout(() => {
+          router.push(`/(app)/(tabs)/messages/${conversation.id}`);
+        }, 50);
       },
       onError: (err) => {
         console.error('[useBarberChat] error:', err);

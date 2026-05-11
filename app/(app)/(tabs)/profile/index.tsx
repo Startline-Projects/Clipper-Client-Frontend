@@ -9,6 +9,7 @@ import { ProfileSkeleton } from '@/components/feedback/SkeletonVariants';
 import ErrorView from '@/components/feedback/ErrorView';
 import { useProfile } from '@/lib/hooks/useProfile';
 import { useLogout } from '@/lib/hooks/useAuth';
+import { useIsAuthenticated } from '@/lib/stores/auth.store';
 import { useColors } from '@/lib/theme/colors';
 import { confirm } from '@/lib/feedback/confirm';
 
@@ -22,6 +23,7 @@ const MENU_ROWS = [
 export default function ProfileScreen() {
   const router = useRouter();
   const colors = useColors();
+  const isAuthenticated = useIsAuthenticated();
   const { data: profile, isLoading, isError, error, refetch, isRefetching } = useProfile();
   const logout = useLogout();
 
@@ -52,9 +54,10 @@ export default function ProfileScreen() {
     if (yes) logout.mutate();
   };
 
-  if (isLoading) return <ProfileSkeleton />;
+  if (isLoading || !isAuthenticated) return <ProfileSkeleton />;
 
   if (isError || !profile) {
+    if ((error as Record<string, unknown>)?.sessionExpired) return <ProfileSkeleton />;
     return <ErrorView error={error} onRetry={refetch} />;
   }
 

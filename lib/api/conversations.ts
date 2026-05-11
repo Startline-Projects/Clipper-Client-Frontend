@@ -118,7 +118,7 @@ export async function startConversation(
   opts: RequestOptions = {},
 ): Promise<Conversation> {
   const { data } = await apiClient.post(
-    '/conversations',
+    '/conversations/start',
     { otherUserId },
     { signal: opts.signal },
   );

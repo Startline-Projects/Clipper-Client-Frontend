@@ -67,12 +67,18 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig | undefined;
+    const status = error.response?.status;
+    const respData = error.response?.data as { code?: string } | undefined;
 
-    if (
-      !originalRequest ||
-      error.response?.status !== 401 ||
-      originalRequest._retried
-    ) {
+    // Role mismatch — session unusable for this app, logout immediately
+    if (status === 403 && respData?.code === 'FORBIDDEN_EXCEPTION') {
+      await useAuthStore.getState().logout();
+      return Promise.reject({ ...normalizeError(error), sessionExpired: true });
+    }
+
+    const isTokenError = status === 401;
+
+    if (!originalRequest || !isTokenError || originalRequest._retried) {
       return Promise.reject(normalizeError(error));
     }
 
@@ -83,7 +89,7 @@ apiClient.interceptors.response.use(
             originalRequest.headers.Authorization = `Bearer ${token}`;
             resolve(apiClient(originalRequest));
           },
-          reject: (err) => reject(normalizeError(err)),
+          reject,
         });
       });
     }
@@ -93,10 +99,12 @@ apiClient.interceptors.response.use(
 
     try {
       const { refreshToken, setTokens, logout } = useAuthStore.getState();
+
       if (!refreshToken) {
         await logout();
-        flushQueue(null, error);
-        return Promise.reject(normalizeError(error));
+        const sessionError = { ...normalizeError(error), sessionExpired: true };
+        flushQueue(null, sessionError);
+        return Promise.reject(sessionError);
       }
 
       const { data } = await axios.post<{
@@ -110,9 +118,10 @@ apiClient.interceptors.response.use(
       originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
       return apiClient(originalRequest);
     } catch (refreshError) {
-      flushQueue(null, refreshError);
       await useAuthStore.getState().logout();
-      return Promise.reject(normalizeError(refreshError));
+      const sessionError = { ...normalizeError(refreshError), sessionExpired: true };
+      flushQueue(null, sessionError);
+      return Promise.reject(sessionError);
     } finally {
       isRefreshing = false;
     }
@@ -125,6 +134,7 @@ export interface ApiError {
   code: string | null;
   isNetwork: boolean;
   isTimeout: boolean;
+  sessionExpired?: boolean;
 }
 
 function normalizeError(error: unknown): ApiError {

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -15,9 +15,11 @@ import Header from '@/components/ui/Header';
 import Avatar from '@/components/ui/Avatar';
 import Icon from '@/components/ui/Icon';
 import EmptyState from '@/components/feedback/EmptyState';
+import { useQueryClient } from '@tanstack/react-query';
 import { useMessages, useSendMessage } from '@/lib/hooks/useMessages';
 import { useRealtimeMessages } from '@/lib/hooks/useRealtimeMessages';
 import { useConversations } from '@/lib/hooks/useConversations';
+import { queryKeys } from '@/lib/hooks/queryKeys';
 import { useColors } from '@/lib/theme/colors';
 import { showErrorToast } from '@/lib/feedback/toast';
 import type { Message } from '@/lib/api/conversations';
@@ -71,6 +73,7 @@ export default function ChatScreen() {
     photo?: string;
   }>();
   const colors = useColors();
+  const qc = useQueryClient();
   const [text, setText] = useState('');
   const listRef = useRef<FlatList>(null);
   const inputRef = useRef<TextInput>(null);
@@ -93,6 +96,13 @@ export default function ChatScreen() {
   const send = useSendMessage(conversationId);
 
   useRealtimeMessages(conversationId);
+
+  // GET /messages marks them read server-side; refresh conversations list to update unreadCount badge
+  useEffect(() => {
+    if (!isLoading && data) {
+      qc.invalidateQueries({ queryKey: queryKeys.conversations.lists() });
+    }
+  }, [isLoading, !!data]);
 
   const messages = data?.messages ?? [];
 

@@ -70,13 +70,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: async () => {
-    const { pushToken } = get();
-    if (pushToken) {
+    const { pushToken, accessToken } = get();
+    // Clear state first to prevent re-entrant 401 loops
+    set({ accessToken: null, refreshToken: null, user: null, pushToken: null });
+    await clearTokens();
+    if (pushToken && accessToken) {
       const { unregisterPushToken } = await import('@/lib/utils/push-notifications');
       await unregisterPushToken(pushToken);
     }
-    await clearTokens();
-    set({ accessToken: null, refreshToken: null, user: null, pushToken: null });
   },
 }));
 

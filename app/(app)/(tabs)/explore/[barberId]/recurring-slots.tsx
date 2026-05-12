@@ -12,6 +12,7 @@ import { useRecurringSlots, useCreateRecurring } from '@/lib/hooks/useRecurring'
 import { useColors } from '@/lib/theme/colors';
 import { formatTime, formatCurrency, formatDuration } from '@/lib/utils/format';
 import { showSuccessToast, showErrorToast } from '@/lib/feedback/toast';
+import { useFiltersStore } from '@/lib/stores/filters';
 
 const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_NAMES_LONG = [
@@ -64,6 +65,8 @@ export default function RecurringSlotsScreen() {
       {
         onSuccess: () => {
           showSuccessToast('Recurring request submitted!');
+          useFiltersStore.getState().setBookingsTab('Recurring');
+          if (router.canDismiss()) router.dismissAll();
           router.replace('/(app)/(tabs)/bookings');
         },
         onError: (err) => showErrorToast(err),

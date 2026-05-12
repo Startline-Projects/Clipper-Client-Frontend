@@ -8,7 +8,9 @@ import ThemeToggle from '@/components/ui/ThemeToggle';
 import { ProfileSkeleton } from '@/components/feedback/SkeletonVariants';
 import ErrorView from '@/components/feedback/ErrorView';
 import { useProfile } from '@/lib/hooks/useProfile';
+import { useClientNoShows } from '@/lib/hooks/useNoShows';
 import { useLogout } from '@/lib/hooks/useAuth';
+import { formatCurrency } from '@/lib/utils/format';
 import { useIsAuthenticated } from '@/lib/stores/auth.store';
 import { useColors } from '@/lib/theme/colors';
 import { confirm } from '@/lib/feedback/confirm';
@@ -17,15 +19,24 @@ const MENU_ROWS = [
   { key: 'edit', icon: 'user' as const, label: 'Edit Profile' },
   { key: 'subscription', icon: 'card' as const, label: 'Subscription' },
   { key: 'payment', icon: 'card' as const, label: 'Payment Method' },
+  { key: 'noShows', icon: 'alert' as const, label: 'No-Show Payments' },
   { key: 'password', icon: 'shield' as const, label: 'Change Password' },
 ] as const;
+
+const OWING_STATUSES = new Set(['unresolved', 'failed', 'pending_payment']);
 
 export default function ProfileScreen() {
   const router = useRouter();
   const colors = useColors();
   const isAuthenticated = useIsAuthenticated();
   const { data: profile, isLoading, isError, error, refetch, isRefetching } = useProfile();
+  const { data: noShows } = useClientNoShows();
   const logout = useLogout();
+
+  const owedNoShows = (noShows?.items ?? []).filter((i) => OWING_STATUSES.has(i.status));
+  const owedCount = owedNoShows.length;
+  const owedAmount = owedNoShows.reduce((s, i) => s + i.amountUsd, 0);
+  const hasBlocked = owedCount >= 3;
 
   const handleMenuPress = (key: string) => {
     switch (key) {
@@ -37,6 +48,9 @@ export default function ProfileScreen() {
         break;
       case 'payment':
         router.push('/(app)/(tabs)/profile/payment-method');
+        break;
+      case 'noShows':
+        router.push('/(app)/(tabs)/profile/no-shows');
         break;
       case 'password':
         router.push('/(app)/(tabs)/profile/change-password');
@@ -86,26 +100,76 @@ export default function ProfileScreen() {
           )}
         </View>
 
-        <Card className="mb-4 overflow-hidden">
-          {MENU_ROWS.map((row, i) => (
-            <Pressable
-              key={row.key}
-              onPress={() => handleMenuPress(row.key)}
-              className={`flex-row items-center gap-3 px-4 py-[14px] active:opacity-70 ${
-                i < MENU_ROWS.length - 1
-                  ? 'border-b-[0.5px] border-separator'
-                  : ''
-              }`}
-              accessibilityRole="button"
-              accessibilityLabel={row.label}
+        {owedCount > 0 && (
+          <Pressable
+            onPress={() => router.push('/(app)/(tabs)/profile/no-shows')}
+            accessibilityRole="button"
+            accessibilityLabel="Resolve no-show payments"
+          >
+            <Card
+              className="mb-4 p-4 border-0"
+              style={{
+                backgroundColor: colors.red + '12',
+                borderLeftWidth: 3,
+                borderLeftColor: colors.red,
+              }}
             >
-              <Icon name={row.icon} size={18} color={colors.secondary} />
-              <Text className="flex-1 text-[15px] font-medium text-ink tracking-[-0.2px]">
-                {row.label}
-              </Text>
-              <Icon name="chevron" size={16} color={colors.quaternary} />
-            </Pressable>
-          ))}
+              <View className="flex-row items-start gap-2">
+                <Icon name="alert" size={18} color={colors.red} />
+                <View className="flex-1">
+                  <Text className="text-[14px] font-semibold" style={{ color: colors.red }}>
+                    {hasBlocked
+                      ? 'Bookings on hold — pay your no-show fees'
+                      : `${owedCount} unpaid no-show${owedCount === 1 ? '' : 's'} · ${formatCurrency(owedAmount)}`}
+                  </Text>
+                  <Text className="text-[12px] text-secondary mt-[2px] leading-[17px]">
+                    {hasBlocked
+                      ? 'You have 3+ unresolved no-show fees. Some barbers may block new bookings until resolved.'
+                      : 'Tap to settle your outstanding no-show fees.'}
+                  </Text>
+                </View>
+                <Icon name="chevron" size={16} color={colors.red} />
+              </View>
+            </Card>
+          </Pressable>
+        )}
+
+        <Card className="mb-4 overflow-hidden">
+          {MENU_ROWS.map((row, i) => {
+            const isNoShows = row.key === 'noShows';
+            const showBadge = isNoShows && owedCount > 0;
+            return (
+              <Pressable
+                key={row.key}
+                onPress={() => handleMenuPress(row.key)}
+                className={`flex-row items-center gap-3 px-4 py-[14px] active:opacity-70 ${
+                  i < MENU_ROWS.length - 1
+                    ? 'border-b-[0.5px] border-separator'
+                    : ''
+                }`}
+                accessibilityRole="button"
+                accessibilityLabel={row.label}
+              >
+                <Icon
+                  name={row.icon}
+                  size={18}
+                  color={showBadge ? colors.red : colors.secondary}
+                />
+                <Text className="flex-1 text-[15px] font-medium text-ink tracking-[-0.2px]">
+                  {row.label}
+                </Text>
+                {showBadge && (
+                  <View
+                    className="px-[8px] py-[2px] rounded-full"
+                    style={{ backgroundColor: colors.red }}
+                  >
+                    <Text className="text-[11px] font-bold text-white">{owedCount}</Text>
+                  </View>
+                )}
+                <Icon name="chevron" size={16} color={colors.quaternary} />
+              </Pressable>
+            );
+          })}
         </Card>
 
         <Card className="mb-4 px-4">

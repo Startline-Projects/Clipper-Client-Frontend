@@ -99,6 +99,17 @@ export async function listArrangements(
   return ArrangementsListSchema.parse(data);
 }
 
+export async function listPendingArrangements(
+  params: { cursor?: string; limit?: number } = {},
+  opts: RequestOptions = {},
+): Promise<ArrangementsList> {
+  const { data } = await apiClient.get(
+    '/client/recurring-arrangements/pending',
+    { params, signal: opts.signal },
+  );
+  return ArrangementsListSchema.parse(data);
+}
+
 export async function getArrangementDetail(
   id: string,
   opts: RequestOptions = {},

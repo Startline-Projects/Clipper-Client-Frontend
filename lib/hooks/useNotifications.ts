@@ -57,8 +57,10 @@ export function useClearAllNotifications() {
           if (!old) return old;
           return {
             ...old,
-            pages: [{ notifications: [], pagination: { currentPage: 1, totalPages: 1, totalNotifications: 0, limit: 20, hasNextPage: false } }],
-            pageParams: [1],
+            pages: old.pages.map((page) => ({
+              ...page,
+              notifications: page.notifications.map((n) => ({ ...n, isRead: true })),
+            })),
           };
         },
       );

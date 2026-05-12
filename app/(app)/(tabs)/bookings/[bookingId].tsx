@@ -96,8 +96,8 @@ export default function BookingDetailScreen() {
 
           <View>
             {[
-              { label: 'Date', value: formatDate(booking.scheduledAt.slice(0, 10)) },
-              { label: 'Time', value: formatTime(booking.scheduledAt.slice(11, 16)) },
+              { label: 'Date', value: formatDate(booking.appointmentDate) },
+              { label: 'Time', value: formatTime(booking.appointmentTime) },
               { label: 'Duration', value: formatDuration(booking.totalDurationMinutes) },
               { label: 'Total', value: formatCurrency(booking.totalPrice) },
             ].map((row) => (

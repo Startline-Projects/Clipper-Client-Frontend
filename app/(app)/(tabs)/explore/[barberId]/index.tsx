@@ -44,6 +44,8 @@ export default function BarberDetailScreen() {
   if (isError || !data) return <ErrorView error={error} onRetry={refetch} />;
 
   const { barber, services, reviews, reviewsSummary, distance } = data;
+  const hasBlockedNoShows = data.hasBlockedNoShows;
+  const unresolvedNoShowsCount = data.unresolvedNoShowsCount;
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={['top']}>
@@ -134,6 +136,37 @@ export default function BarberDetailScreen() {
               </Pressable>
             )}
           </View>
+
+          {hasBlockedNoShows && (
+            <Pressable
+              className="w-full"
+              onPress={() => router.push('/(app)/(tabs)/profile/no-shows')}
+              accessibilityRole="button"
+              accessibilityLabel="Resolve no-show payments"
+            >
+              <Card
+                className="mt-4 p-[14px] mb-0 border-0 shadow-none"
+                style={{
+                  backgroundColor: colors.red + '12',
+                  borderLeftWidth: 3,
+                  borderLeftColor: colors.red,
+                }}
+              >
+                <View className="flex-row items-start gap-2">
+                  <Icon name="alert" size={16} color={colors.red} />
+                  <View className="flex-1">
+                    <Text className="text-[14px] font-semibold" style={{ color: colors.red }}>
+                      Resolve your no-show fees to book
+                    </Text>
+                    <Text className="text-[12px] text-secondary mt-[2px]">
+                      You have {unresolvedNoShowsCount} unresolved no-show{unresolvedNoShowsCount === 1 ? '' : 's'}. Tap to pay.
+                    </Text>
+                  </View>
+                  <Icon name="chevron" size={14} color={colors.red} />
+                </View>
+              </Card>
+            </Pressable>
+          )}
 
           {barber.recurringAvailable && (
             <Card

@@ -38,10 +38,15 @@ const MarkReadResponseSchema = z.object({
   isRead: z.literal(true),
 });
 
+const ClearAllNotificationsResponseSchema = z.object({
+  updated: z.number(),
+});
+
 // ── Public types ──
 
 export type Notification = z.infer<typeof NotificationSchema>;
 export type NotificationsListResponse = z.infer<typeof NotificationsListResponseSchema>;
+export type ClearAllNotificationsResponseDto = z.infer<typeof ClearAllNotificationsResponseSchema>;
 
 export interface ListNotificationsParams {
   page?: number;
@@ -88,8 +93,11 @@ export async function markNotificationRead(
 
 export async function clearAllNotifications(
   opts: RequestOptions = {},
-): Promise<void> {
-  await apiClient.delete('/client/notifications', {
-    signal: opts.signal,
-  });
+): Promise<ClearAllNotificationsResponseDto> {
+  const { data } = await apiClient.post(
+    '/client/notifications/clear-all',
+    undefined,
+    { signal: opts.signal },
+  );
+  return ClearAllNotificationsResponseSchema.parse(data);
 }

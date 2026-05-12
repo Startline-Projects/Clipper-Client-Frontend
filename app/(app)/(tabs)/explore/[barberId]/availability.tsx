@@ -166,7 +166,7 @@ export default function AvailabilityScreen() {
                         <SlotGrid
                           slots={selectedDay.slots.afterHours}
                           selectedSlot={selectedSlot}
-                          onSelect={setSlot}
+                          onSelect={(time, tier) => setSlot(time, TIER_TO_BOOKING_TYPE[tier])}
                           tier="afterHours"
                         />
                       </View>
@@ -179,7 +179,7 @@ export default function AvailabilityScreen() {
                         <SlotGrid
                           slots={selectedDay.slots.dayOff}
                           selectedSlot={selectedSlot}
-                          onSelect={setSlot}
+                          onSelect={(time, tier) => setSlot(time, TIER_TO_BOOKING_TYPE[tier])}
                           tier="dayOff"
                         />
                       </View>

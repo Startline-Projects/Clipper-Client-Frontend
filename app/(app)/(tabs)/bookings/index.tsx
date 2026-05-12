@@ -1,10 +1,13 @@
 import { useCallback } from 'react';
-import { FlatList, View } from 'react-native';
+import { FlatList, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
 import TabBar from '@/components/ui/TabBar';
+import Card from '@/components/ui/Card';
+import Avatar from '@/components/ui/Avatar';
+import Icon from '@/components/ui/Icon';
 import UpcomingBookingCard from '@/components/booking/UpcomingBookingCard';
 import PastBookingCard from '@/components/booking/PastBookingCard';
 import RecurringBookingCard from '@/components/booking/RecurringBookingCard';
@@ -15,8 +18,19 @@ import {
   usePastBookings,
   useRecurringBookingsList,
 } from '@/lib/hooks/useBookings';
+import { usePendingArrangements } from '@/lib/hooks/useArrangements';
 import { useFiltersStore, useBookingsTab } from '@/lib/stores/filters';
+import { formatCurrency, formatTime } from '@/lib/utils/format';
 import type { UpcomingBooking, PastBooking, ClientRecurringBooking } from '@/lib/api/bookings';
+import type { Arrangement } from '@/lib/api/arrangements';
+
+const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const FREQUENCY_LABELS: Record<string, string> = {
+  weekly: 'Weekly',
+  biweekly: 'Every 2 weeks',
+  every_n_weeks: 'Custom',
+  monthly: 'Monthly',
+};
 
 const TABS = ['Upcoming', 'Past', 'Recurring'] as const;
 
@@ -56,7 +70,8 @@ function UpcomingList() {
           serviceName={item.serviceName}
           appointmentDate={item.appointmentDate}
           appointmentTime={item.appointmentTime}
-          durationMinutes={item.durationMinutes}
+          totalDurationMinutes={item.totalDurationMinutes}
+          services={item.services}
           status={item.status}
           isRecurring={item.isRecurring}
           onPress={() => router.push(`/(app)/(tabs)/bookings/${item.id}`)}
@@ -115,7 +130,7 @@ function PastList() {
           hasReview={item.hasReview}
           onPress={() => router.push(`/(app)/(tabs)/bookings/${item.id}`)}
           onReview={
-            item.status === 'completed' && !item.hasReview
+            !item.hasReview && (item.status === 'completed' || item.status === undefined)
               ? () =>
                   router.push({
                     pathname: '/(app)/(tabs)/bookings/review',
@@ -158,11 +173,57 @@ function PastList() {
   );
 }
 
+function PendingArrangementCard({ item }: { item: Arrangement }) {
+  const router = useRouter();
+  const freq =
+    item.frequency === 'every_n_weeks' && item.intervalN
+      ? `Every ${item.intervalN} weeks`
+      : FREQUENCY_LABELS[item.frequency] ?? item.frequency;
+
+  return (
+    <View className="px-5 mb-3">
+      <Card
+        className="p-4 border border-yellow/40 bg-yellow/5"
+        onPress={() =>
+          router.push(`/(app)/(tabs)/bookings/arrangements/${item.id}`)
+        }
+      >
+        <View className="flex-row items-center gap-2 mb-3">
+          <Icon name="repeat" size={12} />
+          <Text className="text-[11px] font-bold uppercase tracking-wide text-yellow">
+            Offer from barber · Action needed
+          </Text>
+        </View>
+        <View className="flex-row items-center gap-3">
+          <Avatar
+            name={item.barber.name}
+            size={40}
+            uri={item.barber.avatarUrl ?? undefined}
+          />
+          <View className="flex-1">
+            <Text className="text-[15px] font-semibold text-ink tracking-[-0.2px]">
+              {item.barber.name}
+            </Text>
+            <Text className="text-[12px] text-tertiary mt-[2px]" numberOfLines={1}>
+              {item.services.map((s) => s.name).join(', ')}
+            </Text>
+            <Text className="text-[12px] text-secondary mt-1">
+              {DAY_NAMES_SHORT[item.dayOfWeek]} {formatTime(item.timeOfDay)} · {freq} · {formatCurrency(item.priceUsd)}
+            </Text>
+          </View>
+        </View>
+      </Card>
+    </View>
+  );
+}
+
 function RecurringList() {
   const router = useRouter();
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useRecurringBookingsList();
+  const { data: pendingData } = usePendingArrangements();
   const bookings = data?.pages.flatMap((p) => p.bookings) ?? [];
+  const pending = pendingData?.pages.flatMap((p) => p.arrangements) ?? [];
 
   const renderItem = useCallback(
     ({ item }: { item: ClientRecurringBooking }) => (
@@ -185,13 +246,41 @@ function RecurringList() {
     [router],
   );
 
+  const PendingHeader = pending.length > 0 ? (
+    <View>
+      <View className="flex-row items-center justify-between px-5 mt-3 mb-2">
+        <Text className="text-[13px] font-semibold uppercase tracking-wide text-tertiary">
+          Pending offers ({pending.length})
+        </Text>
+        <Pressable
+          onPress={() =>
+            router.push('/(app)/(tabs)/bookings/arrangements/pending')
+          }
+          className="active:opacity-70"
+          accessibilityRole="button"
+        >
+          <Text className="text-[13px] font-medium text-brand">See all</Text>
+        </Pressable>
+      </View>
+      {pending.slice(0, 3).map((item) => (
+        <PendingArrangementCard key={item.id} item={item} />
+      ))}
+      {bookings.length > 0 && (
+        <Text className="px-5 mt-2 mb-2 text-[13px] font-semibold uppercase tracking-wide text-tertiary">
+          Your recurring
+        </Text>
+      )}
+    </View>
+  ) : null;
+
   if (isLoading)
     return (
       <View className="px-5 gap-3 mt-4">
         {[1, 2, 3].map((i) => <BookingCardSkeleton key={i} />)}
       </View>
     );
-  if (bookings.length === 0)
+
+  if (bookings.length === 0 && pending.length === 0)
     return (
       <EmptyState
         icon="repeat"
@@ -206,6 +295,7 @@ function RecurringList() {
       data={bookings}
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
+      ListHeaderComponent={PendingHeader}
       onEndReached={() => {
         if (hasNextPage && !isFetchingNextPage) fetchNextPage();
       }}

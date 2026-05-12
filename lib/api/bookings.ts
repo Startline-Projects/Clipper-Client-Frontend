@@ -19,6 +19,14 @@ const BookingServiceSchema = z.object({
   pricing: PricingSchema,
 });
 
+const UpcomingBookingServiceSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  durationMinutes: z.number(),
+  bookingType: BookingType,
+  startOffsetMinutes: z.number(),
+});
+
 const BarberRefSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -58,9 +66,13 @@ const UpcomingBookingSchema = z.object({
   barberName: z.string(),
   barberProfileImage: z.string().nullable(),
   serviceName: z.string(),
+  scheduledAt: z.string(),
+  timezone: z.string(),
   appointmentDate: z.string(),
   appointmentTime: z.string(),
   durationMinutes: z.number(),
+  totalDurationMinutes: z.number(),
+  services: z.array(UpcomingBookingServiceSchema),
   status: BookingStatus,
   isRecurring: z.boolean(),
 });
@@ -85,11 +97,14 @@ const PastBookingSchema = z.object({
   barberName: z.string(),
   barberProfileImage: z.string().nullable(),
   serviceName: z.string(),
+  scheduledAt: z.string(),
+  timezone: z.string(),
   appointmentDate: z.string(),
   appointmentTime: z.string(),
+  totalDurationMinutes: z.number(),
   pricePaid: z.number(),
   hasReview: z.boolean(),
-  status: BookingStatus,
+  status: BookingStatus.optional(),
 });
 
 const PastResponseSchema = z.object({
@@ -129,6 +144,9 @@ const BookingDetailSchema = z.object({
     }),
     services: z.array(BookingServiceSchema),
     scheduledAt: z.string(),
+    timezone: z.string(),
+    appointmentDate: z.string(),
+    appointmentTime: z.string(),
     totalDurationMinutes: z.number(),
     totalPrice: z.number(),
     status: BookingStatus,
@@ -177,6 +195,7 @@ export type BookingDetail = z.infer<typeof BookingDetailSchema>['booking'];
 export type BookingDetailResponse = z.infer<typeof BookingDetailSchema>;
 export type CancelResponse = z.infer<typeof CancelResponseSchema>;
 export type BookingService = z.infer<typeof BookingServiceSchema>;
+export type UpcomingBookingService = z.infer<typeof UpcomingBookingServiceSchema>;
 export type Pricing = z.infer<typeof PricingSchema>;
 
 export interface BookingBody {

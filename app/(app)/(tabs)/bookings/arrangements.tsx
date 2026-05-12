@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { FlatList, Text, View } from 'react-native';
+import { FlatList, Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
@@ -89,7 +89,24 @@ export default function ArrangementsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={['top']}>
       <View className="px-5">
-        <Header title="Arrangements" onBack={() => router.back()} />
+        <Header
+          title="Arrangements"
+          onBack={() => router.back()}
+          right={
+            <Pressable
+              onPress={() =>
+                router.push('/(app)/(tabs)/bookings/arrangements/pending')
+              }
+              className="active:opacity-70"
+              accessibilityRole="button"
+              accessibilityLabel="View pending offers"
+            >
+              <Text className="text-[14px] font-medium text-brand">
+                Pending
+              </Text>
+            </Pressable>
+          }
+        />
       </View>
 
       {arrangements.length === 0 ? (

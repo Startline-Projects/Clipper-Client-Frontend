@@ -7,13 +7,20 @@ import Badge from '@/components/ui/Badge';
 import { useColors } from '@/lib/theme/colors';
 import { formatDate, formatTime, formatDuration } from '@/lib/utils/format';
 
+interface UpcomingBookingCardService {
+  id: string;
+  name: string;
+  durationMinutes: number;
+}
+
 interface UpcomingBookingCardProps {
   barberName: string;
   barberProfileImage: string | null;
   serviceName: string;
   appointmentDate: string;
   appointmentTime: string;
-  durationMinutes: number;
+  totalDurationMinutes: number;
+  services?: UpcomingBookingCardService[];
   status: string;
   isRecurring: boolean;
   onPress?: () => void;
@@ -25,7 +32,8 @@ export default function UpcomingBookingCard({
   serviceName,
   appointmentDate,
   appointmentTime,
-  durationMinutes,
+  totalDurationMinutes,
+  services,
   status,
   isRecurring,
   onPress,
@@ -46,9 +54,22 @@ export default function UpcomingBookingCard({
           <View className="flex-row items-center gap-[4px] mt-[4px]">
             <Icon name="calendar" size={12} color={colors.tertiary} />
             <Text className="text-[12px] text-tertiary">
-              {formatDate(appointmentDate)} · {formatTime(appointmentTime)} · {formatDuration(durationMinutes)}
+              {formatDate(appointmentDate)} · {formatTime(appointmentTime)} · {formatDuration(totalDurationMinutes)}
             </Text>
           </View>
+          {services && services.length > 1 && (
+            <View className="mt-[6px]">
+              {services.map((svc) => (
+                <Text
+                  key={svc.id}
+                  className="text-[12px] text-tertiary"
+                  numberOfLines={1}
+                >
+                  • {svc.name} · {formatDuration(svc.durationMinutes)}
+                </Text>
+              ))}
+            </View>
+          )}
           <View className="flex-row items-center gap-2 mt-[6px]">
             <StatusBadge status={status} />
             {isRecurring && <Badge label="Recurring" color={colors.badgeRecurring} bg={colors.badgeRecurringBg} small />}

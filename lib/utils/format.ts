@@ -13,8 +13,31 @@ const dateFormatter = new Intl.DateTimeFormat('en-US', {
   day: 'numeric',
 });
 
-export function formatDate(iso: string): string {
-  return dateFormatter.format(new Date(iso));
+// Accepts a pre-projected local date (YYYY-MM-DD) and formats it without any
+// timezone conversion. Constructing `new Date("2026-05-11")` parses as UTC
+// midnight, which can render as the previous day in negative-offset zones.
+export function formatDate(localDate: string): string {
+  const [y, m, d] = localDate.slice(0, 10).split('-').map(Number);
+  return dateFormatter.format(new Date(y, (m ?? 1) - 1, d ?? 1));
+}
+
+// For UTC ISO strings that must be projected into a specific IANA timezone.
+export function formatDateInZone(isoUtc: string, timeZone: string): string {
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    timeZone,
+  }).format(new Date(isoUtc));
+}
+
+export function formatTimeInZone(isoUtc: string, timeZone: string): string {
+  return new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone,
+  }).format(new Date(isoUtc));
 }
 
 export function formatTime(time: string): string {

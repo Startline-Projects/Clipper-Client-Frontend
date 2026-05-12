@@ -119,6 +119,7 @@ export const queryKeys = {
     lists: () => [...queryKeys.arrangements.all, 'list'] as const,
     list: (filters: ArrangementsFilters) =>
       [...queryKeys.arrangements.lists(), filters] as const,
+    pending: () => [...queryKeys.arrangements.all, 'pending'] as const,
     details: () => [...queryKeys.arrangements.all, 'detail'] as const,
     detail: (id: string) =>
       [...queryKeys.arrangements.details(), id] as const,
@@ -143,6 +144,13 @@ export const queryKeys = {
       [...queryKeys.messages.all, 'conversation', conversationId] as const,
     list: (conversationId: string) =>
       [...queryKeys.messages.byConversation(conversationId), 'list'] as const,
+  },
+
+  noShows: {
+    all: ['noShows'] as const,
+    lists: () => [...queryKeys.noShows.all, 'list'] as const,
+    list: (status?: string) =>
+      [...queryKeys.noShows.lists(), { status: status ?? null }] as const,
   },
 
   notifications: {

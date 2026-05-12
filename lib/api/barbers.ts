@@ -81,6 +81,8 @@ const BarberDetailSchema = z.object({
   reviewsSummary: ReviewsSummarySchema,
   distance: DistanceSchema,
   hasActivePlan: z.boolean(),
+  unresolvedNoShowsCount: z.number().default(0),
+  hasBlockedNoShows: z.boolean().default(false),
 });
 
 // ── Public types ──

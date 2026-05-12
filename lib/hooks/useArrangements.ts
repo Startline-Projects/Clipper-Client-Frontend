@@ -25,6 +25,19 @@ export function useArrangements(filters: ArrangementsFilters = {}) {
   });
 }
 
+export function usePendingArrangements() {
+  return useInfiniteQuery({
+    queryKey: queryKeys.arrangements.pending(),
+    queryFn: ({ pageParam, signal }) =>
+      arrangementsApi.listPendingArrangements(
+        { cursor: pageParam, limit: 20 },
+        { signal },
+      ),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => (last.hasMore ? last.nextCursor : undefined),
+  });
+}
+
 // ── Detail ──
 
 export function useArrangementDetail(id: string | undefined) {

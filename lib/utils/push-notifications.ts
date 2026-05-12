@@ -72,18 +72,11 @@ export async function unregisterPushToken(token: string): Promise<void> {
   }
 }
 
-export function handleNotificationTap(
-  response: Notifications.NotificationResponse,
-): void {
-  const data = response.notification.request.content.data as Record<
-    string,
-    string | undefined
-  >;
-
+function resolveTapTarget(
+  data: Record<string, string | undefined>,
+): string | null {
   if (data.conversationId) {
-    router.navigate('/(app)/(tabs)/messages');
-    InteractionManager.runAfterInteractions(() => router.push(`/(app)/(tabs)/messages/${data.conversationId}`));
-    return;
+    return `/(app)/(tabs)/messages/${data.conversationId}`;
   }
 
   const isArrangementType =
@@ -92,30 +85,55 @@ export function handleNotificationTap(
     data.type === 'recurring_arrangement_rejected';
 
   if (isArrangementType && data.recurringBookingId) {
-    router.navigate('/(app)/(tabs)/bookings');
-    InteractionManager.runAfterInteractions(() => router.push(`/(app)/(tabs)/bookings/arrangements/${data.recurringBookingId}`));
-    return;
+    return `/(app)/(tabs)/bookings/arrangements/${data.recurringBookingId}`;
   }
 
   if (data.bookingId) {
-    router.navigate('/(app)/(tabs)/bookings');
-    InteractionManager.runAfterInteractions(() => router.push(`/(app)/(tabs)/bookings/${data.bookingId}`));
-    return;
+    return `/(app)/(tabs)/bookings/${data.bookingId}`;
   }
 
   if (data.recurringBookingId) {
-    router.navigate('/(app)/(tabs)/bookings');
-    InteractionManager.runAfterInteractions(() => router.push(`/(app)/(tabs)/bookings/recurring/${data.recurringBookingId}`));
-    return;
+    return `/(app)/(tabs)/bookings/recurring/${data.recurringBookingId}`;
   }
 
-  router.navigate('/(app)/(tabs)/explore/notifications');
+  return '/(app)/(tabs)/explore/notifications';
+}
+
+let lastHandledId: string | null = null;
+
+export function handleNotificationTap(
+  response: Notifications.NotificationResponse,
+): void {
+  const id = response.notification.request.identifier;
+  if (id && id === lastHandledId) return;
+  lastHandledId = id ?? null;
+
+  const data = response.notification.request.content.data as Record<
+    string,
+    string | undefined
+  >;
+  const target = resolveTapTarget(data);
+  if (!target) return;
+
+  InteractionManager.runAfterInteractions(() => {
+    try {
+      router.push(target as never);
+    } catch {
+      setTimeout(() => router.push(target as never), 150);
+    }
+  });
 }
 
 export function setupNotificationListeners(): () => void {
   const tapSub = Notifications.addNotificationResponseReceivedListener(
     handleNotificationTap,
   );
+
+  Notifications.getLastNotificationResponseAsync()
+    .then((response) => {
+      if (response) handleNotificationTap(response);
+    })
+    .catch(() => {});
 
   return () => {
     tapSub.remove();

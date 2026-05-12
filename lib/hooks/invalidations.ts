@@ -36,6 +36,7 @@ export const invalidations = {
       queryKey: queryKeys.arrangements.detail(arrangementId),
     });
     qc.invalidateQueries({ queryKey: queryKeys.arrangements.lists() });
+    qc.invalidateQueries({ queryKey: queryKeys.arrangements.pending() });
     qc.invalidateQueries({ queryKey: queryKeys.bookings.all });
   },
 
@@ -63,6 +64,11 @@ export const invalidations = {
 
   notificationRead: (qc: QueryClient) => {
     qc.invalidateQueries({ queryKey: queryKeys.notifications.all });
+  },
+
+  noShowResolved: (qc: QueryClient) => {
+    qc.invalidateQueries({ queryKey: queryKeys.noShows.all });
+    qc.invalidateQueries({ queryKey: queryKeys.barbers.all });
   },
 
   onLogout: (qc: QueryClient) => qc.clear(),

@@ -35,7 +35,7 @@ const MessageInput = forwardRef<TextInput, MessageInputProps>(
           accessibilityRole="button"
           accessibilityLabel="Send message"
         >
-          <Icon name="send" size={16} color={colors.white} />
+          <Icon name="send" size={16} color={colors.bg} />
         </Pressable>
       </View>
     );

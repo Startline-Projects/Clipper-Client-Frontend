@@ -17,7 +17,7 @@ declare module '@tanstack/react-query' {
   }
 }
 
-const STALE_TIME = 2 * 60 * 1000;
+const STALE_TIME = 5 * 60 * 1000;
 const GC_TIME = 10 * 60 * 1000;
 
 function isSessionExpired(error: unknown): boolean {

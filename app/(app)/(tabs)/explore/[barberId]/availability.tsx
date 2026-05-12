@@ -16,6 +16,13 @@ import { useLocation } from '@/lib/hooks/useLocation';
 import { useColors } from '@/lib/theme/colors';
 import { formatDuration } from '@/lib/utils/format';
 import { showErrorToast } from '@/lib/feedback/toast';
+import type { BookingType } from '@/lib/schemas/enums';
+
+const TIER_TO_BOOKING_TYPE: Record<string, BookingType> = {
+  regular: 'regular',
+  afterHours: 'after_hours',
+  dayOff: 'day_off',
+};
 
 function toDateString(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -146,7 +153,7 @@ export default function AvailabilityScreen() {
                         <SlotGrid
                           slots={selectedDay.slots.regular}
                           selectedSlot={selectedSlot}
-                          onSelect={setSlot}
+                          onSelect={(time, tier) => setSlot(time, TIER_TO_BOOKING_TYPE[tier])}
                           tier="regular"
                         />
                       </View>

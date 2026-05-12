@@ -1,6 +1,8 @@
+import { useEffect, useRef } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import Animated, { ZoomIn, FadeIn } from 'react-native-reanimated';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useNavigation, StackActions } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '@/components/ui/Icon';
 import Btn from '@/components/ui/Btn';
@@ -27,6 +29,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 export default function ConfirmedScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const colors = useColors();
   const { bookingId, barberId } = useLocalSearchParams<{
     bookingId: string;
@@ -41,6 +44,32 @@ export default function ConfirmedScreen() {
   );
 
   const isAutoConfirmed = booking?.status === 'confirmed';
+  const didRedirect = useRef(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (didRedirect.current) return;
+      didRedirect.current = true;
+      navigation.getParent()?.dispatch(StackActions.popToTop());
+      router.navigate(
+        bookingId
+          ? `/(app)/(tabs)/bookings/${bookingId}`
+          : '/(app)/(tabs)/bookings',
+      );
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [navigation, router, bookingId]);
+
+  const goToBookings = () => {
+    if (didRedirect.current) return;
+    didRedirect.current = true;
+    navigation.getParent()?.dispatch(StackActions.popToTop());
+    router.navigate(
+      bookingId
+        ? `/(app)/(tabs)/bookings/${bookingId}`
+        : '/(app)/(tabs)/bookings',
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={['top']}>
@@ -116,27 +145,17 @@ export default function ConfirmedScreen() {
 
         <View className="gap-[10px] mt-2">
           <Btn
+            label="View Booking"
+            full
+            onPress={goToBookings}
+          />
+          <Btn
             label="Message Barber"
             variant="secondary"
             full
             icon="chat"
             onPress={openChat}
             disabled={chatPending}
-          />
-          {bookingId && (
-            <Btn
-              label="View Booking"
-              full
-              onPress={() =>
-                router.replace(`/(app)/(tabs)/bookings/${bookingId}`)
-              }
-            />
-          )}
-          <Btn
-            label="Back to Explore"
-            variant="ghost"
-            full
-            onPress={() => router.replace('/(app)/(tabs)/explore')}
           />
         </View>
       </ScrollView>

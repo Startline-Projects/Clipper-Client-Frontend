@@ -87,7 +87,7 @@ export default function ChatScreen() {
       <View className="px-5">
         <Header
           title={displayName}
-          onBack={() => router.back()}
+          onBack={() => router.navigate('/(app)/(tabs)/messages')}
           right={
             <Avatar name={displayName} uri={displayPhoto} size={32} />
           }

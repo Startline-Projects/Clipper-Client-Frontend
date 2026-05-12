@@ -115,7 +115,7 @@ function PastList() {
           hasReview={item.hasReview}
           onPress={() => router.push(`/(app)/(tabs)/bookings/${item.id}`)}
           onReview={
-            !item.hasReview
+            item.status === 'completed' && !item.hasReview
               ? () =>
                   router.push({
                     pathname: '/(app)/(tabs)/bookings/review',

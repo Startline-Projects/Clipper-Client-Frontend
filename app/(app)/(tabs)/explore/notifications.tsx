@@ -7,7 +7,7 @@ import Icon from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import EmptyState from '@/components/feedback/EmptyState';
 import { ConversationRowSkeleton } from '@/components/feedback/SkeletonVariants';
-import { useNotifications, useMarkNotificationRead } from '@/lib/hooks/useNotifications';
+import { useNotifications, useMarkNotificationRead, useClearAllNotifications } from '@/lib/hooks/useNotifications';
 import { useColors } from '@/lib/theme/colors';
 import { formatRelativeTime } from '@/lib/utils/format';
 import type { Notification } from '@/lib/api/notifications';
@@ -31,6 +31,7 @@ export default function NotificationsScreen() {
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useNotifications();
   const markRead = useMarkNotificationRead();
+  const clearAll = useClearAllNotifications();
 
   const notifications = data?.pages.flatMap((p) => p.notifications) ?? [];
 
@@ -109,7 +110,25 @@ export default function NotificationsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={['top']}>
       <View className="px-5">
-        <Header title="Notifications" onBack={() => router.back()} />
+        <Header
+          title="Notifications"
+          onBack={() => router.back()}
+          right={
+            notifications.length > 0 ? (
+              <Pressable
+                onPress={() => clearAll.mutate()}
+                disabled={clearAll.isPending}
+                className="active:opacity-70"
+                accessibilityRole="button"
+                accessibilityLabel="Clear all notifications"
+              >
+                <Text className="text-[14px] font-medium text-red">
+                  Clear All
+                </Text>
+              </Pressable>
+            ) : undefined
+          }
+        />
       </View>
 
       {isLoading ? (

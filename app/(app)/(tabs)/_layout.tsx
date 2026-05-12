@@ -83,6 +83,16 @@ export default function TabsLayout() {
               />
             ),
           }}
+          listeners={
+            tab.name === 'messages'
+              ? ({ navigation, route }) => ({
+                  tabPress: (e) => {
+                    e.preventDefault();
+                    navigation.navigate(route.name, { screen: 'index' });
+                  },
+                })
+              : undefined
+          }
         />
       ))}
     </Tabs>

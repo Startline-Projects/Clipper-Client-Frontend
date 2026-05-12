@@ -19,7 +19,7 @@ export function BookingCardSkeleton() {
 
 export function BarberCardSkeleton() {
   return (
-    <View className="bg-card rounded-lg p-4 gap-3">
+    <View className="bg-card rounded-lg p-4 gap-3 mb-3">
       <View className="flex-row items-center gap-3">
         <SkeletonAvatar size={48} />
         <View className="flex-1 gap-2">

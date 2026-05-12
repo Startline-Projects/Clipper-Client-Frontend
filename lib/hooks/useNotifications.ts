@@ -35,6 +35,49 @@ export function useUnreadCount() {
   });
 }
 
+export function useClearAllNotifications() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => notifApi.clearAllNotifications(),
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: queryKeys.notifications.lists() });
+      await qc.cancelQueries({ queryKey: queryKeys.notifications.unreadCount() });
+
+      const previousList =
+        qc.getQueryData<InfiniteData<NotificationsListResponse>>(
+          queryKeys.notifications.lists(),
+        );
+      const previousCount = qc.getQueryData<number>(
+        queryKeys.notifications.unreadCount(),
+      );
+
+      qc.setQueryData<InfiniteData<NotificationsListResponse>>(
+        queryKeys.notifications.lists(),
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: [{ notifications: [], pagination: { currentPage: 1, totalPages: 1, totalNotifications: 0, limit: 20, hasNextPage: false } }],
+            pageParams: [1],
+          };
+        },
+      );
+      qc.setQueryData<number>(queryKeys.notifications.unreadCount(), 0);
+
+      return { previousList, previousCount };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previousList) {
+        qc.setQueryData(queryKeys.notifications.lists(), ctx.previousList);
+      }
+      if (ctx?.previousCount !== undefined) {
+        qc.setQueryData(queryKeys.notifications.unreadCount(), ctx.previousCount);
+      }
+    },
+    onSettled: () => invalidations.notificationRead(qc),
+  });
+}
+
 export function useMarkNotificationRead() {
   const qc = useQueryClient();
   return useMutation({

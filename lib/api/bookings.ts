@@ -89,6 +89,7 @@ const PastBookingSchema = z.object({
   appointmentTime: z.string(),
   pricePaid: z.number(),
   hasReview: z.boolean(),
+  status: BookingStatus,
 });
 
 const PastResponseSchema = z.object({

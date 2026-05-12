@@ -85,3 +85,11 @@ export async function markNotificationRead(
   );
   MarkReadResponseSchema.parse(data);
 }
+
+export async function clearAllNotifications(
+  opts: RequestOptions = {},
+): Promise<void> {
+  await apiClient.delete('/client/notifications', {
+    signal: opts.signal,
+  });
+}

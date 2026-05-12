@@ -12,7 +12,7 @@ interface Slot {
 interface SlotGridProps {
   slots: Slot[];
   selectedSlot: string | null;
-  onSelect: (time: string) => void;
+  onSelect: (time: string, tier: 'regular' | 'afterHours' | 'dayOff') => void;
   tier: 'regular' | 'afterHours' | 'dayOff';
 }
 
@@ -46,7 +46,7 @@ export default function SlotGrid({
         return (
           <Pressable
             key={slot.time}
-            onPress={() => isAvailable && onSelect(slot.time)}
+            onPress={() => isAvailable && onSelect(slot.time, tier)}
             disabled={!isAvailable}
             accessibilityRole="button"
             accessibilityState={{ selected: isSelected, disabled: !isAvailable }}

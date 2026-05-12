@@ -1,4 +1,4 @@
-import { Alert, InteractionManager } from 'react-native';
+import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useStartConversation } from './useConversations';
 
@@ -13,10 +13,7 @@ export function useBarberChat(barberId: string, barberName: string) {
     }
     startConvo.mutate(barberId, {
       onSuccess: (conversation) => {
-        router.navigate('/(app)/(tabs)/messages');
-        InteractionManager.runAfterInteractions(() => {
-          router.push(`/(app)/(tabs)/messages/${conversation.id}`);
-        });
+        router.navigate(`/(app)/(tabs)/messages/${conversation.id}`);
       },
       onError: (err) => {
         console.error('[useBarberChat] error:', err);

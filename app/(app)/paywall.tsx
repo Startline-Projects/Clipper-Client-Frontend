@@ -143,7 +143,7 @@ export default function PaywallScreen() {
             </Text>
 
             {savedCard && (
-              <Pressable onPress={() => setUseExistingCard(true)}>
+              <Pressable onPress={() => setUseExistingCard(true)} accessibilityRole="radio" accessibilityState={{ selected: useExistingCard }} accessibilityLabel={`Use saved card ending in ${savedCard.last4}`}>
                 <Card
                   className="p-4 mb-[10px] flex-row items-center gap-3"
                   style={useExistingCard ? { borderWidth: 1.5, borderColor: colors.brand } : undefined}
@@ -167,7 +167,7 @@ export default function PaywallScreen() {
               </Pressable>
             )}
 
-            <Pressable onPress={() => setUseExistingCard(false)}>
+            <Pressable onPress={() => setUseExistingCard(false)} accessibilityRole="radio" accessibilityState={{ selected: !useExistingCard || !savedCard }} accessibilityLabel="Add new card">
               <Card
                 className="p-4 flex-row items-center gap-3"
                 style={!useExistingCard || !savedCard ? { borderWidth: 1.5, borderColor: colors.brand } : undefined}

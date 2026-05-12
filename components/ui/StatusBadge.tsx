@@ -1,34 +1,38 @@
+import { useMemo } from 'react';
 import Badge from './Badge';
-import { useColors } from '@/lib/theme/colors';
+import { useColors, type SemanticColors } from '@/lib/theme/colors';
 
 interface StatusBadgeProps {
   status: string;
 }
 
+function buildMap(c: SemanticColors): Record<string, [string, string]> {
+  return {
+    confirmed: [c.green, 'Confirmed'],
+    pending: [c.yellow, 'Pending'],
+    completed: [c.ink, 'Completed'],
+    cancelled: [c.red, 'Cancelled'],
+    no_show: [c.red, 'No-Show'],
+    active: [c.green, 'Active'],
+    paused: [c.orange, 'Paused'],
+    scheduled: [c.blue, 'Scheduled'],
+    charged: [c.green, 'Paid'],
+    failed_payment: [c.red, 'Failed'],
+    pending_client_approval: [c.yellow, 'Awaiting'],
+    pending_barber_approval: [c.yellow, 'Pending'],
+    expired: [c.tertiary, 'Expired'],
+    rejected: [c.red, 'Rejected'],
+    ended: [c.tertiary, 'Ended'],
+    pending_approval: [c.yellow, 'Pending'],
+    past_due: [c.red, 'Past Due'],
+  };
+}
+
 export default function StatusBadge({ status }: StatusBadgeProps) {
   const colors = useColors();
-
-  const map: Record<string, [string, string]> = {
-    confirmed: [colors.green, 'Confirmed'],
-    pending: [colors.yellow, 'Pending'],
-    completed: [colors.ink, 'Completed'],
-    cancelled: [colors.red, 'Cancelled'],
-    no_show: [colors.red, 'No-Show'],
-    active: [colors.green, 'Active'],
-    paused: [colors.orange, 'Paused'],
-    scheduled: [colors.blue, 'Scheduled'],
-    charged: [colors.green, 'Paid'],
-    failed_payment: [colors.red, 'Failed'],
-    pending_client_approval: [colors.yellow, 'Awaiting'],
-    pending_barber_approval: [colors.yellow, 'Pending'],
-    expired: [colors.tertiary, 'Expired'],
-    rejected: [colors.red, 'Rejected'],
-    ended: [colors.tertiary, 'Ended'],
-    pending_approval: [colors.yellow, 'Pending'],
-    past_due: [colors.red, 'Past Due'],
-  };
+  const map = useMemo(() => buildMap(colors), [colors]);
 
   const [accent, label] = map[status] ?? [colors.quaternary, status];
 
-  return <Badge bg={accent + '18'} color={accent} label={label} />;
+  return <Badge bg={accent + '1A'} color={accent} label={label} />;
 }

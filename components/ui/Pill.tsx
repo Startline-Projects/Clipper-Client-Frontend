@@ -17,6 +17,9 @@ export default function Pill({ label, active, onPress, color }: PillProps) {
       onPress={onPress}
       style={{ backgroundColor: active ? activeBg : colors.bg }}
       className="self-start rounded-full px-3 py-2 active:opacity-70"
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      accessibilityLabel={`Filter: ${label}`}
     >
       <Text
         style={{ color: active ? colors.bg : colors.secondary }}

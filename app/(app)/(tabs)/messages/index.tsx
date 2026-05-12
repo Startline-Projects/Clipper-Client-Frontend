@@ -1,4 +1,5 @@
-import { ActivityIndicator, FlatList, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, RefreshControl, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SearchInput from '@/components/forms/SearchInput';
@@ -20,13 +21,21 @@ export default function MessagesScreen() {
   const search = useConversationSearch();
   const setSearch = useFiltersStore((s) => s.setConversationSearch);
 
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(id);
+  }, [search]);
+
   const {
     data,
     isLoading,
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
-  } = useConversations({ search: search || undefined });
+    refetch,
+    isRefetching,
+  } = useConversations({ search: debouncedSearch || undefined });
 
   const conversations = data?.pages.flatMap((p) => p.conversations) ?? [];
 
@@ -88,6 +97,13 @@ export default function MessagesScreen() {
           renderItem={renderItem}
           onEndReached={() => hasNextPage && fetchNextPage()}
           onEndReachedThreshold={0.5}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              tintColor={colors.tertiary}
+            />
+          }
           ListFooterComponent={
             isFetchingNextPage ? (
               <ActivityIndicator size="small" color={colors.tertiary} style={{ paddingVertical: 16 }} />

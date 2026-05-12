@@ -33,9 +33,9 @@ export default function UpcomingBookingCard({
   const colors = useColors();
 
   return (
-    <Card onPress={onPress} elevated className="mb-[10px]">
+    <Card onPress={onPress} elevated className="mb-[10px]" accessibilityLabel={`Booking with ${barberName}, ${serviceName}`}>
       <View className="flex-row items-center gap-3">
-        <Avatar name={barberName} size={42} uri={barberProfileImage ?? undefined} />
+        <Avatar name={barberName} size={44} uri={barberProfileImage ?? undefined} />
         <View className="flex-1 min-w-0">
           <Text className="text-[15px] font-semibold text-ink tracking-[-0.2px]" numberOfLines={1}>
             {barberName}
@@ -51,7 +51,7 @@ export default function UpcomingBookingCard({
           </View>
           <View className="flex-row items-center gap-2 mt-[6px]">
             <StatusBadge status={status} />
-            {isRecurring && <Badge label="Recurring" color="#C47F17" bg="#FDF3E0" small />}
+            {isRecurring && <Badge label="Recurring" color={colors.badgeRecurring} bg={colors.badgeRecurringBg} small />}
           </View>
         </View>
         <Icon name="chevron" size={16} color={colors.quaternary} />

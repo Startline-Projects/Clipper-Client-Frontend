@@ -1,4 +1,5 @@
 import { ScrollView, Text, View } from 'react-native';
+import Animated, { ZoomIn, FadeIn } from 'react-native-reanimated';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '@/components/ui/Icon';
@@ -45,17 +46,27 @@ export default function ConfirmedScreen() {
     <SafeAreaView className="flex-1 bg-bg" edges={['top']}>
       <ScrollView className="flex-1 px-5" contentContainerClassName="pb-8 pt-4">
         <View className="items-center mb-6">
-          <View className="w-[72px] h-[72px] rounded-full bg-green/10 items-center justify-center mb-4">
-            <Icon name="check" size={36} color={colors.green} />
-          </View>
-          <Text className="text-[24px] font-extrabold text-ink tracking-[-0.6px] mb-1">
+          <Animated.View
+            entering={ZoomIn.delay(100).springify()}
+            style={{ backgroundColor: colors.green + '1A' }}
+            className="w-[68px] h-[68px] rounded-full items-center justify-center mb-4"
+          >
+            <Icon name="check" size={32} color={colors.green} />
+          </Animated.View>
+          <Animated.Text
+            entering={FadeIn.delay(120).duration(300)}
+            className="text-[24px] font-extrabold text-ink tracking-[-0.6px] mb-1"
+          >
             {isAutoConfirmed ? 'Booking Confirmed' : 'Booking Submitted'}
-          </Text>
-          <Text className="text-[14px] text-secondary text-center leading-[21px] tracking-[-0.1px] px-4">
+          </Animated.Text>
+          <Animated.Text
+            entering={FadeIn.delay(200).duration(300)}
+            className="text-[14px] text-secondary text-center leading-[21px] tracking-[-0.1px] px-4"
+          >
             {isAutoConfirmed
               ? "You're all set! See you at your appointment."
               : "Your appointment has been submitted. You'll get a notification once your barber confirms."}
-          </Text>
+          </Animated.Text>
         </View>
 
         {booking && (

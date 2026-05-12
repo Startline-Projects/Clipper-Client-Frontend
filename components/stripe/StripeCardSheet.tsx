@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
-import { WebView, type WebViewMessageEvent } from 'react-native-webview';
+import { WebView, type WebViewMessageEvent, type ShouldStartLoadRequest } from 'react-native-webview';
 import { useColors } from '@/lib/theme/colors';
 import { useTheme } from '@/lib/hooks/useTheme';
 
@@ -19,6 +19,8 @@ interface StripeCardSheetProps {
 }
 
 function buildHTML(publishableKey: string, theme: 'light' | 'dark', colors: Record<string, string>) {
+  const s = (v: string) => JSON.stringify(v);
+
   return `
 <!DOCTYPE html>
 <html>
@@ -29,45 +31,45 @@ function buildHTML(publishableKey: string, theme: 'light' | 'dark', colors: Reco
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: ${colors.bg};
+      background: ${s(colors.bg)};
       padding: 24px 20px;
       -webkit-text-size-adjust: 100%;
     }
     h2 {
-      color: ${colors.ink};
+      color: ${s(colors.ink)};
       font-size: 18px;
       font-weight: 700;
       margin-bottom: 4px;
       letter-spacing: -0.3px;
     }
     .subtitle {
-      color: ${colors.secondary};
+      color: ${s(colors.secondary)};
       font-size: 14px;
       margin-bottom: 24px;
     }
     label {
       display: block;
-      color: ${colors.secondary};
+      color: ${s(colors.secondary)};
       font-size: 13px;
       font-weight: 600;
       margin-bottom: 6px;
       letter-spacing: -0.1px;
     }
     #card-element {
-      background: ${colors.surface};
-      border: 1.5px solid ${colors.separatorOpaque};
+      background: ${s(colors.surface)};
+      border: 1.5px solid ${s(colors.separatorOpaque)};
       border-radius: 16px;
       padding: 14px 16px;
       min-height: 50px;
     }
     #card-element.StripeElement--focus {
-      border-color: ${colors.brand};
+      border-color: ${s(colors.brand)};
     }
     #card-element.StripeElement--invalid {
-      border-color: ${colors.red};
+      border-color: ${s(colors.red)};
     }
     #card-errors {
-      color: ${colors.red};
+      color: ${s(colors.red)};
       font-size: 12px;
       margin-top: 8px;
       min-height: 18px;
@@ -77,7 +79,7 @@ function buildHTML(publishableKey: string, theme: 'light' | 'dark', colors: Reco
       height: 50px;
       border: none;
       border-radius: 16px;
-      background: ${colors.brand};
+      background: ${s(colors.brand)};
       color: #FFFFFF;
       font-size: 16px;
       font-weight: 600;
@@ -94,7 +96,7 @@ function buildHTML(publishableKey: string, theme: 'light' | 'dark', colors: Reco
       border: none;
       border-radius: 12px;
       background: transparent;
-      color: ${colors.secondary};
+      color: ${s(colors.secondary)};
       font-size: 15px;
       font-weight: 500;
       margin-top: 12px;
@@ -102,7 +104,7 @@ function buildHTML(publishableKey: string, theme: 'light' | 'dark', colors: Reco
       -webkit-appearance: none;
     }
     .secure-note {
-      color: ${colors.tertiary};
+      color: ${s(colors.tertiary)};
       font-size: 11px;
       text-align: center;
       margin-top: 16px;
@@ -121,16 +123,16 @@ function buildHTML(publishableKey: string, theme: 'light' | 'dark', colors: Reco
   <p class="secure-note">Securely processed by Stripe. We never store your full card details.</p>
 
   <script>
-    var stripe = Stripe('${publishableKey}');
+    var stripe = Stripe(${s(publishableKey)});
     var elements = stripe.elements();
     var style = {
       base: {
-        color: '${colors.ink}',
+        color: ${s(colors.ink)},
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         fontSize: '15px',
-        '::placeholder': { color: '${colors.tertiary}' }
+        '::placeholder': { color: ${s(colors.tertiary)} }
       },
-      invalid: { color: '${colors.red}' }
+      invalid: { color: ${s(colors.red)} }
     };
     var card = elements.create('card', { style: style, hidePostalCode: true });
     card.mount('#card-element');
@@ -179,6 +181,7 @@ export default function StripeCardSheet({ visible, onPaymentMethod, onCancel }: 
   const colors = useColors();
   const theme = useTheme();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const webViewRef = useRef<WebView>(null);
 
   const handleMessage = useCallback(
@@ -214,6 +217,12 @@ export default function StripeCardSheet({ visible, onPaymentMethod, onCancel }: 
 
   const html = buildHTML(STRIPE_PK, theme, colorMap);
 
+  const handleShouldStartLoad = useCallback((request: ShouldStartLoadRequest) => {
+    if (request.url === 'about:blank' || request.url.startsWith('data:')) return true;
+    if (request.url.startsWith('https://js.stripe.com')) return true;
+    return false;
+  }, []);
+
   return (
     <Modal
       visible={visible}
@@ -231,7 +240,7 @@ export default function StripeCardSheet({ visible, onPaymentMethod, onCancel }: 
             paddingBottom: 8,
           }}
         >
-          <Pressable onPress={onCancel} hitSlop={12}>
+          <Pressable onPress={onCancel} hitSlop={12} accessibilityRole="button" accessibilityLabel="Close">
             <Text style={{ fontSize: 16, fontWeight: '500', color: colors.brand }}>
               Close
             </Text>
@@ -255,17 +264,39 @@ export default function StripeCardSheet({ visible, onPaymentMethod, onCancel }: 
           </View>
         )}
 
-        <WebView
-          ref={webViewRef}
-          source={{ html }}
-          originWhitelist={['*']}
-          onMessage={handleMessage}
-          onLoadEnd={() => setLoading(false)}
-          style={{ flex: 1, backgroundColor: colors.bg }}
-          scrollEnabled={false}
-          bounces={false}
-          javaScriptEnabled
-        />
+        {error ? (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+            <Text style={{ fontSize: 16, fontWeight: '600', color: colors.ink, marginBottom: 8 }}>
+              Failed to load payment form
+            </Text>
+            <Text style={{ fontSize: 14, color: colors.secondary, textAlign: 'center', marginBottom: 20 }}>
+              Please check your connection and try again.
+            </Text>
+            <Pressable
+              onPress={() => { setError(false); setLoading(true); webViewRef.current?.reload(); }}
+              style={{ paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, backgroundColor: colors.brand }}
+              accessibilityRole="button"
+              accessibilityLabel="Retry"
+            >
+              <Text style={{ fontSize: 15, fontWeight: '600', color: colors.white }}>Retry</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <WebView
+            ref={webViewRef}
+            source={{ html }}
+            originWhitelist={['https://js.stripe.com']}
+            onShouldStartLoadWithRequest={handleShouldStartLoad}
+            onMessage={handleMessage}
+            onLoadEnd={() => setLoading(false)}
+            onError={() => { setLoading(false); setError(true); }}
+            onHttpError={() => { setLoading(false); setError(true); }}
+            style={{ flex: 1, backgroundColor: colors.bg }}
+            scrollEnabled={false}
+            bounces={false}
+            javaScriptEnabled
+          />
+        )}
       </View>
     </Modal>
   );

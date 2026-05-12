@@ -42,7 +42,7 @@ export function useRealtimeUnread() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      try { supabase.removeChannel(channel); } catch {}
     };
   }, [userId, qc]);
 }

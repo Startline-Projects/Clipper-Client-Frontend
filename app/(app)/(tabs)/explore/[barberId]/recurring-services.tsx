@@ -64,10 +64,13 @@ export default function RecurringServicesScreen() {
                 <Pressable
                   key={s.id}
                   onPress={() => !isDisabled && toggle(s.id)}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: isSelected, disabled: isDisabled }}
+                  accessibilityLabel={`${s.name}, ${s.durationMinutes} minutes`}
                   style={{
                     borderWidth: isSelected ? 2 : 1,
-                    borderColor: isSelected ? '#C47F17' : colors.separatorOpaque,
-                    backgroundColor: isSelected ? '#FFF8ED' : colors.card,
+                    borderColor: isSelected ? colors.badgeRecurring : colors.separatorOpaque,
+                    backgroundColor: isSelected ? colors.recurringPale : colors.card,
                     opacity: isDisabled ? 0.4 : 1,
                   }}
                   className="rounded-lg p-4 active:opacity-70"
@@ -95,7 +98,7 @@ export default function RecurringServicesScreen() {
                       <Text className="text-[11px] text-tertiary">From</Text>
                       <Text
                         className="text-[18px] font-bold tracking-[-0.3px]"
-                        style={{ color: '#C47F17' }}
+                        style={{ color: colors.badgeRecurring }}
                       >
                         {formatCurrency(s.recurringPriceFrom)}
                       </Text>

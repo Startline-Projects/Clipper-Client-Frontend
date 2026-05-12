@@ -72,13 +72,15 @@ export default function ExploreScreen() {
             <Text className="text-[14px] text-secondary tracking-[-0.1px]">
               Find your barber
             </Text>
-            <Text className="text-[26px] font-bold text-ink tracking-[-0.6px] mt-[2px]">
+            <Text className="text-[28px] font-bold text-ink tracking-[-0.6px] mt-[2px]">
               Explore
             </Text>
           </View>
           <Pressable
             onPress={() => router.push('/(app)/(tabs)/explore/notifications')}
-            className="w-10 h-10 rounded-full bg-bg-warm items-center justify-center"
+            className="w-9 h-9 rounded-full bg-bg-warm items-center justify-center"
+            accessibilityRole="button"
+            accessibilityLabel={`Notifications${hasUnread ? ', unread' : ''}`}
           >
             <Icon name="bell" size={19} color={colors.ink} />
             {hasUnread && (
@@ -111,7 +113,7 @@ export default function ExploreScreen() {
           <Pill
             label="Recurring"
             active={recurringFilter === 'available'}
-            color="#C47F17"
+            color={colors.badgeRecurring}
             onPress={() =>
               setRecurringFilter(
                 recurringFilter === 'available' ? null : 'available',
@@ -166,7 +168,7 @@ export default function ExploreScreen() {
             if (hasNextPage && !isFetchingNextPage) fetchNextPage();
           }}
           onEndReachedThreshold={0.5}
-          contentContainerClassName="pb-6"
+          contentContainerClassName="pb-8"
         />
       )}
     </SafeAreaView>

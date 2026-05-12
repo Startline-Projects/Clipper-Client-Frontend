@@ -63,6 +63,8 @@ export default function BarberDetailScreen() {
                 onPress={openChat}
                 disabled={chatPending}
                 className="w-9 h-9 rounded-full bg-bg-warm items-center justify-center active:opacity-70"
+                accessibilityRole="button"
+                accessibilityLabel="Message barber"
               >
                 <Icon name="chat" size={18} color={colors.ink} />
               </Pressable>
@@ -80,7 +82,7 @@ export default function BarberDetailScreen() {
             {barber.name}
           </Text>
           <View className="flex-row items-center gap-[5px] mt-[4px]">
-            <Icon name="star" size={13} color="#F5A623" />
+            <Icon name="star" size={13} color={colors.star} />
             <Text className="text-[14px] font-semibold text-ink">
               {reviewsSummary.averageRating > 0
                 ? reviewsSummary.averageRating.toFixed(1)
@@ -109,6 +111,8 @@ export default function BarberDetailScreen() {
                   )
                 }
                 className="flex-row items-center gap-1 active:opacity-70"
+                accessibilityRole="link"
+                accessibilityLabel={`Open address: ${barber.address}`}
               >
                 <Icon name="location" size={12} color={colors.tertiary} />
                 <Text className="text-[12px] text-tertiary underline">
@@ -120,6 +124,8 @@ export default function BarberDetailScreen() {
               <Pressable
                 onPress={() => Linking.openURL(`tel:${barber.phone}`)}
                 className="flex-row items-center gap-1 active:opacity-70"
+                accessibilityRole="link"
+                accessibilityLabel={`Call ${barber.phone}`}
               >
                 <Icon name="phone" size={12} color={colors.tertiary} />
                 <Text className="text-[12px] text-tertiary underline">
@@ -135,13 +141,13 @@ export default function BarberDetailScreen() {
               style={{
                 backgroundColor: colors.bgWarm,
                 borderLeftWidth: 3,
-                borderLeftColor: '#C47F17',
+                borderLeftColor: colors.badgeRecurring,
               }}
             >
               <View className="flex-row items-center gap-2">
-                <Icon name="repeat" size={16} color="#C47F17" />
+                <Icon name="repeat" size={16} color={colors.badgeRecurring} />
                 <View>
-                  <Text className="text-[14px] font-semibold" style={{ color: '#C47F17' }}>
+                  <Text className="text-[14px] font-semibold" style={{ color: colors.badgeRecurring }}>
                     Recurring available
                   </Text>
                   <Text className="text-[12px] text-secondary mt-[2px]">

@@ -37,6 +37,9 @@ export default function TimeSelect({
           <Pressable
             key={t}
             onPress={() => onSelect(t)}
+            accessibilityRole="button"
+            accessibilityState={{ selected }}
+            accessibilityLabel={to12Hr(t)}
             className="px-4 py-[10px] rounded-sm items-center justify-center active:opacity-70"
             style={{
               backgroundColor: selected ? accent : colors.surface,
@@ -46,7 +49,7 @@ export default function TimeSelect({
           >
             <Text
               className="text-[14px] font-semibold tracking-[-0.1px]"
-              style={{ color: selected ? '#FFFFFF' : colors.ink }}
+              style={{ color: selected ? colors.white : colors.ink }}
             >
               {to12Hr(t)}
             </Text>

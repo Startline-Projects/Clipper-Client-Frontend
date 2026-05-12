@@ -63,6 +63,11 @@ function flushQueue(token: string | null, error: unknown) {
   refreshQueue = [];
 }
 
+export function clearRefreshQueue() {
+  isRefreshing = false;
+  flushQueue(null, { status: 0, message: 'Logged out', code: null, isNetwork: false, isTimeout: false, sessionExpired: true });
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {

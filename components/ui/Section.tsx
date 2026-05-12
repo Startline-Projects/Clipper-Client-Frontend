@@ -24,7 +24,7 @@ export default function Section({
             {title}
           </Text>
           {action && (
-            <Pressable onPress={onAction} hitSlop={8}>
+            <Pressable onPress={onAction} hitSlop={8} accessibilityRole="button" accessibilityLabel={action}>
               <Text className="text-blue text-[14px] font-semibold tracking-[-0.1px]">
                 {action}
               </Text>

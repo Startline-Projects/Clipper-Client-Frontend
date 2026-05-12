@@ -25,6 +25,13 @@ interface Palette {
   blue: string;
   yellow: string;
   teal: string;
+  white: string;
+  star: string;
+  badgeRecurring: string;
+  badgeRecurringBg: string;
+  recurringPale: string;
+  slotAfterHours: string;
+  slotDayOff: string;
 }
 
 const light: Palette = {
@@ -52,6 +59,13 @@ const light: Palette = {
   blue: '#0A84FF',
   yellow: '#FFD60A',
   teal: '#64D2FF',
+  white: '#FFFFFF',
+  star: '#F5A623',
+  badgeRecurring: '#C47F17',
+  badgeRecurringBg: '#FDF3E0',
+  recurringPale: '#FFF8ED',
+  slotAfterHours: '#6C5CE7',
+  slotDayOff: '#E67E22',
 };
 
 const dark: Palette = {
@@ -79,6 +93,13 @@ const dark: Palette = {
   blue: '#0A84FF',
   yellow: '#FFD60A',
   teal: '#64D2FF',
+  white: '#FFFFFF',
+  star: '#F5A623',
+  badgeRecurring: '#C47F17',
+  badgeRecurringBg: '#FDF3E0',
+  recurringPale: '#2A1F0A',
+  slotAfterHours: '#6C5CE7',
+  slotDayOff: '#E67E22',
 };
 
 export type SemanticColors = Palette;

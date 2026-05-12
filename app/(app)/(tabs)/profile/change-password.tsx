@@ -59,25 +59,25 @@ export default function ChangePasswordScreen() {
           keyboardShouldPersistTaps="handled"
           contentContainerClassName="pb-8"
         >
-          <TextField
-            label="Current Password"
-            value={current}
-            onChangeText={setCurrent}
-            placeholder="Enter current password"
-            secureTextEntry
-          />
+          <View className="mb-4">
+            <TextField
+              label="Current Password"
+              value={current}
+              onChangeText={setCurrent}
+              placeholder="Enter current password"
+              secureTextEntry
+            />
+          </View>
 
-          <View className="h-4" />
-
-          <TextField
-            label="New Password"
-            value={newPwd}
-            onChangeText={setNewPwd}
-            placeholder="At least 8 characters"
-            secureTextEntry
-          />
-
-          <View className="h-4" />
+          <View className="mb-4">
+            <TextField
+              label="New Password"
+              value={newPwd}
+              onChangeText={setNewPwd}
+              placeholder="At least 8 characters"
+              secureTextEntry
+            />
+          </View>
 
           <TextField
             label="Confirm New Password"

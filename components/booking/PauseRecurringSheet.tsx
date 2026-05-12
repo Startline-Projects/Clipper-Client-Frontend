@@ -3,6 +3,7 @@ import { Text, View, Pressable } from 'react-native';
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetView,
+  type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet';
 import Btn from '@/components/ui/Btn';
 import Icon from '@/components/ui/Icon';
@@ -33,7 +34,7 @@ export default function PauseRecurringSheet({
   }, [onClose]);
 
   const renderBackdrop = useCallback(
-    (props: any) => (
+    (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
         {...props}
         disappearsOnIndex={-1}
@@ -66,7 +67,7 @@ export default function PauseRecurringSheet({
       backgroundStyle={{ backgroundColor: colors.card }}
     >
       <BottomSheetView>
-        <View className="px-6 pb-8 pt-2">
+        <View className="px-6 pb-10 pt-2">
           <Text className="text-[18px] font-bold text-ink mb-1">
             Pause Series
           </Text>
@@ -77,6 +78,9 @@ export default function PauseRecurringSheet({
           <Pressable
             className="flex-row items-center justify-between py-3 mb-2"
             onPress={() => setHasEndDate(!hasEndDate)}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: hasEndDate }}
+            accessibilityLabel="Set resume date"
           >
             <Text className="text-[14px] text-ink">Set resume date</Text>
             <View
@@ -84,7 +88,7 @@ export default function PauseRecurringSheet({
                 hasEndDate ? 'bg-blue border-blue' : 'border-separator'
               }`}
             >
-              {hasEndDate && <Icon name="check" size={12} color="#fff" />}
+              {hasEndDate && <Icon name="check" size={12} color={colors.white} />}
             </View>
           </Pressable>
 
@@ -93,6 +97,8 @@ export default function PauseRecurringSheet({
               <Pressable
                 onPress={() => setWeeksOut(Math.max(1, weeksOut - 1))}
                 className="w-9 h-9 rounded-full bg-bgHover items-center justify-center"
+                accessibilityRole="button"
+                accessibilityLabel="Decrease weeks"
               >
                 <Text className="text-[18px] text-ink">{'−'}</Text>
               </Pressable>
@@ -102,6 +108,8 @@ export default function PauseRecurringSheet({
               <Pressable
                 onPress={() => setWeeksOut(Math.min(12, weeksOut + 1))}
                 className="w-9 h-9 rounded-full bg-bgHover items-center justify-center"
+                accessibilityRole="button"
+                accessibilityLabel="Increase weeks"
               >
                 <Text className="text-[18px] text-ink">+</Text>
               </Pressable>

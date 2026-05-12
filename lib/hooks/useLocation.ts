@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import * as Location from 'expo-location';
 
 interface LocationState {
@@ -17,7 +17,6 @@ export function useLocation() {
     loading: !cachedCoords,
     error: null,
   });
-  const mounted = useRef(true);
 
   const fetchLocation = useCallback(async () => {
     setState((s) => ({ ...s, loading: true, error: null }));
@@ -25,13 +24,11 @@ export function useLocation() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        if (mounted.current) {
-          setState((s) => ({
-            ...s,
-            loading: false,
-            error: 'Location permission denied',
-          }));
-        }
+        setState((s) => ({
+          ...s,
+          loading: false,
+          error: 'Location permission denied',
+        }));
         return;
       }
 
@@ -43,17 +40,13 @@ export function useLocation() {
         latitude: loc.coords.latitude,
         longitude: loc.coords.longitude,
       };
-      if (mounted.current) {
-        setState({
-          latitude: cachedCoords.latitude,
-          longitude: cachedCoords.longitude,
-          loading: false,
-          error: null,
-        });
-      }
-    } catch (err) {
-      if (!mounted.current) return;
-
+      setState({
+        latitude: cachedCoords.latitude,
+        longitude: cachedCoords.longitude,
+        loading: false,
+        error: null,
+      });
+    } catch {
       try {
         const last = await Location.getLastKnownPositionAsync();
         if (last) {
@@ -69,7 +62,9 @@ export function useLocation() {
           });
           return;
         }
-      } catch {}
+      } catch (e) {
+        console.warn('[location] getLastKnownPositionAsync failed:', e);
+      }
 
       setState((s) => ({
         ...s,
@@ -80,13 +75,9 @@ export function useLocation() {
   }, []);
 
   useEffect(() => {
-    mounted.current = true;
     if (!cachedCoords) {
       fetchLocation();
     }
-    return () => {
-      mounted.current = false;
-    };
   }, [fetchLocation]);
 
   return { ...state, refresh: fetchLocation };

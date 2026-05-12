@@ -53,15 +53,18 @@ export default function DateStrip({
               borderColor: colors.separatorOpaque,
             }}
             className="w-[52px] py-[10px] rounded-md items-center active:opacity-70"
+            accessibilityRole="button"
+            accessibilityState={{ selected: isSelected }}
+            accessibilityLabel={`${DAY_NAMES[dayOfWeek]} ${date.getDate()}${isToday ? ', today' : ''}`}
           >
             <Text
-              style={{ color: isSelected ? '#fff' : isWorking ? colors.secondary : colors.quaternary }}
+              style={{ color: isSelected ? colors.white : isWorking ? colors.secondary : colors.quaternary }}
               className="text-[11px] font-semibold tracking-[0.3px] uppercase"
             >
               {DAY_NAMES[dayOfWeek]}
             </Text>
             <Text
-              style={{ color: isSelected ? '#fff' : isWorking ? colors.ink : colors.quaternary }}
+              style={{ color: isSelected ? colors.white : isWorking ? colors.ink : colors.quaternary }}
               className="text-[18px] font-bold mt-[2px]"
             >
               {date.getDate()}

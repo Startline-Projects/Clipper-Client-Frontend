@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
@@ -9,6 +9,8 @@ import Avatar from '@/components/ui/Avatar';
 import Icon from '@/components/ui/Icon';
 import StatusBadge from '@/components/ui/StatusBadge';
 import LoadingSpinner from '@/components/feedback/LoadingSpinner';
+import TextArea from '@/components/forms/TextArea';
+import { confirm } from '@/lib/feedback/confirm';
 import {
   useArrangementDetail,
   useAcceptArrangement,
@@ -60,18 +62,13 @@ export default function ArrangementDetailScreen() {
 
   const isPending = arrangement.status === 'pending_client_approval';
 
-  const handleAccept = () => {
-    Alert.alert(
-      'Accept Arrangement',
-      'Accept this recurring arrangement from your barber?',
-      [
-        { text: 'Not Now', style: 'cancel' },
-        {
-          text: 'Accept',
-          onPress: () => accept.mutate(arrangement.id),
-        },
-      ],
-    );
+  const handleAccept = async () => {
+    const yes = await confirm({
+      title: 'Accept Arrangement',
+      message: 'Accept this recurring arrangement from your barber?',
+      confirmLabel: 'Accept',
+    });
+    if (yes) accept.mutate(arrangement.id);
   };
 
   const handleReject = () => {
@@ -231,19 +228,13 @@ export default function ArrangementDetailScreen() {
           <View className="gap-[10px] mt-2">
             {showRejectInput && (
               <View className="mb-2">
-                <Text className="text-[13px] text-secondary mb-1">
-                  Reason (optional)
-                </Text>
-                <TextInput
-                  className="bg-card border border-separator rounded-md px-3 py-3 text-[14px] text-ink"
+                <TextArea
+                  label="Reason (optional)"
                   placeholder="Why are you declining?"
                   placeholderTextColor={colors.tertiary}
                   value={rejectReason}
                   onChangeText={setRejectReason}
                   maxLength={1000}
-                  multiline
-                  numberOfLines={3}
-                  textAlignVertical="top"
                 />
               </View>
             )}

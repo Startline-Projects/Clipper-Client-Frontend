@@ -16,11 +16,14 @@ interface SlotGridProps {
   tier: 'regular' | 'afterHours' | 'dayOff';
 }
 
-const TIER_COLORS: Record<string, string> = {
-  regular: '#2563EB',
-  afterHours: '#6C5CE7',
-  dayOff: '#E67E22',
-};
+function useTierColors() {
+  const colors = useColors();
+  return {
+    regular: colors.brand,
+    afterHours: colors.slotAfterHours,
+    dayOff: colors.slotDayOff,
+  };
+}
 
 export default function SlotGrid({
   slots,
@@ -29,7 +32,8 @@ export default function SlotGrid({
   tier,
 }: SlotGridProps) {
   const colors = useColors();
-  const tierColor = TIER_COLORS[tier] ?? colors.brand;
+  const tierColors = useTierColors();
+  const tierColor = tierColors[tier] ?? colors.brand;
 
   if (slots.length === 0) return null;
 
@@ -44,6 +48,9 @@ export default function SlotGrid({
             key={slot.time}
             onPress={() => isAvailable && onSelect(slot.time)}
             disabled={!isAvailable}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isSelected, disabled: !isAvailable }}
+            accessibilityLabel={`${formatTime(slot.time)}, ${formatCurrency(slot.price)}${!isAvailable ? ', unavailable' : ''}`}
             style={{
               backgroundColor: isSelected
                 ? tierColor
@@ -57,7 +64,7 @@ export default function SlotGrid({
             className="w-[calc(33%-6px)] min-w-[95px] py-[10px] px-3 rounded-md items-center active:opacity-70"
           >
             <Text
-              style={{ color: isSelected ? '#fff' : isAvailable ? colors.ink : colors.tertiary }}
+              style={{ color: isSelected ? colors.white : isAvailable ? colors.ink : colors.tertiary }}
               className="text-[14px] font-semibold tracking-[-0.1px]"
             >
               {formatTime(slot.time)}

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Avatar from '@/components/ui/Avatar';
 import Badge from '@/components/ui/Badge';
@@ -15,7 +16,7 @@ interface BarberCardProps {
   onPress?: () => void;
 }
 
-export default function BarberCard({
+export default memo(function BarberCard({
   name,
   profileImage,
   averageRating,
@@ -31,6 +32,8 @@ export default function BarberCard({
     <Pressable
       onPress={onPress}
       className="bg-card rounded-lg mb-sm shadow-sm shadow-black/6 active:opacity-80 overflow-hidden"
+      accessibilityRole="button"
+      accessibilityLabel={`${name}, ${averageRating.toFixed(1)} stars, ${distance.miles} miles away`}
     >
       <View className="flex-row gap-[14px] p-4">
         <Avatar
@@ -48,14 +51,14 @@ export default function BarberCard({
             {recurringAvailable && (
               <Badge
                 label="Recurring"
-                color="#C47F17"
-                bg="#FDF3E0"
+                color={colors.badgeRecurring}
+                bg={colors.badgeRecurringBg}
               />
             )}
           </View>
 
           <View className="flex-row items-center gap-[5px] mt-[5px]">
-            <Icon name="star" size={12} color="#F5A623" />
+            <Icon name="star" size={12} color={colors.star} />
             <Text className="text-[13px] font-semibold text-ink">
               {averageRating.toFixed(1)}
             </Text>
@@ -80,4 +83,4 @@ export default function BarberCard({
       </View>
     </Pressable>
   );
-}
+})

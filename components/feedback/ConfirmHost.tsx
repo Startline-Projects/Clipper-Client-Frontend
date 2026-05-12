@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetView,
+  type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet';
 import Btn from '@/components/ui/Btn';
 import { useColors } from '@/lib/theme/colors';
@@ -32,7 +33,7 @@ export default function ConfirmHost() {
   }, []);
 
   const renderBackdrop = useCallback(
-    (props: any) => (
+    (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
         {...props}
         disappearsOnIndex={-1}
@@ -57,7 +58,7 @@ export default function ConfirmHost() {
     >
       <BottomSheetView>
         {options && (
-          <View className="px-6 pb-8 pt-2">
+          <View className="px-6 pb-10 pt-2">
             <Text className="text-[18px] font-bold text-ink mb-1">
               {options.title}
             </Text>

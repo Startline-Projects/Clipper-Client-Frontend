@@ -139,6 +139,8 @@ export default function LoginScreen() {
           <Pressable
             onPress={() => router.push('/(auth)/forgot-password')}
             className="mt-3 mb-[18px]"
+            accessibilityRole="link"
+            accessibilityLabel="Forgot password"
           >
             <Text className="text-[13px] font-semibold text-blue tracking-[-0.1px]">
               Forgot password?
@@ -156,7 +158,7 @@ export default function LoginScreen() {
             <Text className="text-[13px] text-secondary tracking-[-0.1px]">
               New to Clipper?{' '}
             </Text>
-            <Pressable onPress={() => router.push('/(auth)/signup')}>
+            <Pressable onPress={() => router.push('/(auth)/signup')} accessibilityRole="link" accessibilityLabel="Create account">
               <Text className="text-[13px] font-bold text-ink">
                 Create account
               </Text>

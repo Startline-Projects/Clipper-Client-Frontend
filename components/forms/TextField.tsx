@@ -20,7 +20,6 @@ const TextField = forwardRef<TextInput, TextFieldProps>(function TextField(
       <View className="relative">
         <TextInput
           ref={ref}
-          placeholderTextColor={undefined}
           {...inputProps}
           className={`w-full px-4 py-[14px] rounded-md border-[1.5px] bg-surface text-[16px] font-medium text-ink tracking-[-0.2px] focus:border-ink placeholder:text-tertiary ${
             error ? 'border-red' : 'border-separator-opaque'

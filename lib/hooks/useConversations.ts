@@ -3,7 +3,7 @@ import { queryKeys } from './queryKeys';
 import type { ConversationsFilters } from './queryKeys';
 import * as convoApi from '@/lib/api/conversations';
 
-export function useConversations(filters: ConversationsFilters = {}) {
+export function useConversations(filters: ConversationsFilters = {}, enabled = true) {
   return useInfiniteQuery({
     queryKey: queryKeys.conversations.list(filters),
     queryFn: ({ pageParam, signal }) =>
@@ -16,6 +16,7 @@ export function useConversations(filters: ConversationsFilters = {}) {
       last.pagination.hasNextPage
         ? last.pagination.currentPage + 1
         : undefined,
+    enabled,
   });
 }
 

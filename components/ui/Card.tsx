@@ -8,6 +8,7 @@ interface CardProps {
   elevated?: boolean;
   className?: string;
   style?: StyleProp<ViewStyle>;
+  accessibilityLabel?: string;
 }
 
 export default function Card({
@@ -16,16 +17,17 @@ export default function Card({
   elevated,
   className,
   style,
+  accessibilityLabel,
 }: CardProps) {
-  const base = `bg-card rounded-lg p-4 mb-sm ${
-    elevated
-      ? 'shadow-sm shadow-black/6'
-      : 'border border-separator'
-  } ${className ?? ''}`;
+  const base = [
+    'bg-card rounded-lg p-4 mb-sm',
+    elevated ? 'shadow-sm shadow-black/6' : 'border border-separator',
+    className,
+  ].filter(Boolean).join(' ');
 
   if (onPress) {
     return (
-      <Pressable onPress={onPress} style={style} className={`${base} active:opacity-80`}>
+      <Pressable onPress={onPress} style={style} className={`${base} active:opacity-80`} accessibilityRole="button" accessibilityLabel={accessibilityLabel}>
         {children}
       </Pressable>
     );

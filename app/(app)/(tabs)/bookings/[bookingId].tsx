@@ -88,7 +88,7 @@ export default function BookingDetailScreen() {
               <View className="flex-row items-center gap-2 mt-1">
                 <StatusBadge status={booking.status} />
                 {booking.isRecurring && (
-                  <Badge label="Recurring" color="#C47F17" bg="#FDF3E0" small />
+                  <Badge label="Recurring" color={colors.badgeRecurring} bg={colors.badgeRecurringBg} small />
                 )}
               </View>
             </View>
@@ -155,7 +155,7 @@ export default function BookingDetailScreen() {
         {booking.review && (
           <Card className="mt-4 p-4">
             <View className="flex-row items-center gap-2 mb-2">
-              <Icon name="star" size={14} color="#F5A623" />
+              <Icon name="star" size={14} color={colors.star} />
               <Text className="text-[14px] font-semibold text-ink">
                 Your Review · {booking.review.rating}/5
               </Text>

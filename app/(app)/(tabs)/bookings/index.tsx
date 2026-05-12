@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { FlatList, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
@@ -31,9 +32,11 @@ export default function BookingsScreen() {
         <TabBar tabs={[...TABS]} active={tab} onChange={(t) => setTab(t as typeof tab)} />
       </View>
 
-      {tab === 'Upcoming' && <UpcomingList />}
-      {tab === 'Past' && <PastList />}
-      {tab === 'Recurring' && <RecurringList />}
+      <Animated.View key={tab} entering={FadeIn.duration(200)} className="flex-1">
+        {tab === 'Upcoming' && <UpcomingList />}
+        {tab === 'Past' && <PastList />}
+        {tab === 'Recurring' && <RecurringList />}
+      </Animated.View>
     </SafeAreaView>
   );
 }
@@ -88,7 +91,7 @@ function UpcomingList() {
         if (hasNextPage && !isFetchingNextPage) fetchNextPage();
       }}
       onEndReachedThreshold={0.5}
-      contentContainerClassName="pb-6"
+      contentContainerClassName="pb-8"
     />
   );
 }
@@ -150,7 +153,7 @@ function PastList() {
         if (hasNextPage && !isFetchingNextPage) fetchNextPage();
       }}
       onEndReachedThreshold={0.5}
-      contentContainerClassName="pb-6"
+      contentContainerClassName="pb-8"
     />
   );
 }
@@ -207,7 +210,7 @@ function RecurringList() {
         if (hasNextPage && !isFetchingNextPage) fetchNextPage();
       }}
       onEndReachedThreshold={0.5}
-      contentContainerClassName="pb-6"
+      contentContainerClassName="pb-8"
     />
   );
 }

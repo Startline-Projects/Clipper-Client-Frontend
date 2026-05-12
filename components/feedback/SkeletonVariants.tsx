@@ -10,7 +10,7 @@ import {
 
 export function BookingCardSkeleton() {
   return (
-    <View className="bg-card rounded-xl p-4 gap-3">
+    <View className="bg-card rounded-lg p-4 gap-3">
       <SkeletonRow />
       <SkeletonText width="80%" />
     </View>
@@ -19,7 +19,7 @@ export function BookingCardSkeleton() {
 
 export function BarberCardSkeleton() {
   return (
-    <View className="bg-card rounded-xl p-4 gap-3">
+    <View className="bg-card rounded-lg p-4 gap-3">
       <View className="flex-row items-center gap-3">
         <SkeletonAvatar size={48} />
         <View className="flex-1 gap-2">
@@ -35,7 +35,7 @@ export function BarberCardSkeleton() {
 export function ConversationRowSkeleton() {
   return (
     <View className="flex-row items-center gap-3 py-3 px-5">
-      <SkeletonAvatar size={48} />
+      <SkeletonAvatar size={44} />
       <View className="flex-1 gap-2">
         <SkeletonText width="55%" />
         <SkeletonText width="75%" height={12} />
@@ -55,7 +55,7 @@ export function HomeHeaderSkeleton() {
 
 export function NextBookingCardSkeleton() {
   return (
-    <View className="bg-card rounded-xl p-4 gap-3">
+    <View className="bg-card rounded-lg p-4 gap-3">
       <SkeletonText width="40%" height={12} />
       <SkeletonRow />
       <SkeletonText width="60%" />

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getToken, setToken, clearTokens } from '@/lib/utils/secure-store';
+import { clearRefreshQueue } from '@/lib/api/client';
 
 const HAS_LAUNCHED_KEY = 'clipper_has_launched';
 
@@ -49,7 +50,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   markLaunched: async () => {
     try {
       await AsyncStorage.setItem(HAS_LAUNCHED_KEY, '1');
-    } catch {}
+    } catch (e) {
+      console.warn('[auth] Failed to persist hasLaunched:', e);
+    }
     set({ hasLaunched: true });
   },
 
@@ -71,8 +74,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     const { pushToken, accessToken } = get();
-    // Clear state first to prevent re-entrant 401 loops
     set({ accessToken: null, refreshToken: null, user: null, pushToken: null });
+    clearRefreshQueue();
     await clearTokens();
     if (pushToken && accessToken) {
       const { unregisterPushToken } = await import('@/lib/utils/push-notifications');

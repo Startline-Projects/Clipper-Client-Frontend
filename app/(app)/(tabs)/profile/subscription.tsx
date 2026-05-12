@@ -112,7 +112,7 @@ export default function SubscriptionScreen() {
               />
             )}
             {sub.cancelAtPeriodEnd && (
-              <Badge label="Cancelling" color={colors.red} bg={colors.red + '15'} small />
+              <Badge label="Cancelling" color={colors.red} bg={colors.red + '1A'} small />
             )}
           </View>
 
@@ -140,7 +140,7 @@ export default function SubscriptionScreen() {
           {isPastDue && (
             <View
               className="mt-2 p-3 rounded-md flex-row items-center gap-2"
-              style={{ backgroundColor: colors.red + '08' }}
+              style={{ backgroundColor: colors.red + '0D' }}
             >
               <Icon name="alert" size={14} color={colors.red} />
               <Text className="text-[13px] text-secondary flex-1">

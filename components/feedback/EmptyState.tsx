@@ -34,7 +34,7 @@ export default function EmptyState({
           isCompact ? 'w-[52px] h-[52px]' : 'w-[68px] h-[68px]'
         }`}
       >
-        <Icon name={icon} size={isCompact ? 22 : 28} color={colors.tertiary} />
+        <Icon name={icon} size={isCompact ? 22 : 32} color={colors.tertiary} />
       </View>
       <Text
         className={`text-ink text-center tracking-[-0.2px] ${

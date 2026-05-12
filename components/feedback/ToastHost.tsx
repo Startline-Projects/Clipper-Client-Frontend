@@ -72,7 +72,7 @@ export default function ToastHost() {
                 width: 32,
                 height: 32,
                 borderRadius: 16,
-                backgroundColor: tint + '1F',
+                backgroundColor: tint + '1A',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
@@ -91,7 +91,7 @@ export default function ToastHost() {
               )}
               <Text className="text-[13px] text-secondary">{toast.message}</Text>
               {toast.action && (
-                <Pressable onPress={toast.action.onPress} className="mt-1">
+                <Pressable onPress={toast.action.onPress} className="mt-1" accessibilityRole="button" accessibilityLabel={toast.action.label}>
                   <Text className="text-[13px] font-bold text-blue">
                     {toast.action.label}
                   </Text>
@@ -101,8 +101,10 @@ export default function ToastHost() {
             {toast.variant !== 'loading' && (
               <Pressable
                 onPress={() => dismiss(toast.id)}
-                hitSlop={8}
-                className="p-1"
+                hitSlop={12}
+                className="p-3"
+                accessibilityRole="button"
+                accessibilityLabel="Dismiss notification"
               >
                 <Icon name="close" size={14} color={colors.tertiary} />
               </Pressable>

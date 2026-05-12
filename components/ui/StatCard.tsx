@@ -15,13 +15,13 @@ export default function StatCard({ value, label, dark }: StatCardProps) {
 
   return (
     <View
-      style={dark ? { backgroundColor: isLight ? '#0A0A0A' : '#FFFFFF' } : undefined}
+      style={dark ? { backgroundColor: isLight ? colors.ink : colors.white } : undefined}
       className={`flex-1 rounded-lg px-[14px] py-4 ${
         dark ? '' : 'bg-surface border border-separator'
       }`}
     >
       <Text
-        style={dark ? { color: isLight ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.4)' } : undefined}
+        style={dark ? { color: isLight ? colors.white + '73' : colors.ink + '66' } : undefined}
         className={`text-[11px] font-bold tracking-[0.6px] uppercase ${
           dark ? '' : 'text-tertiary'
         }`}
@@ -29,7 +29,7 @@ export default function StatCard({ value, label, dark }: StatCardProps) {
         {label}
       </Text>
       <Text
-        style={dark ? { color: isLight ? '#FFFFFF' : '#0A0A0A' } : undefined}
+        style={dark ? { color: isLight ? colors.white : colors.ink } : undefined}
         className={`text-[30px] font-extrabold tracking-[-1px] mt-[6px] ${
           dark ? '' : 'text-ink'
         }`}

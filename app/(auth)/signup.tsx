@@ -233,7 +233,7 @@ export default function SignupScreen() {
             <Text className="text-[13px] text-secondary tracking-[-0.1px]">
               Already have an account?{' '}
             </Text>
-            <Pressable onPress={() => router.push('/(auth)/login')}>
+            <Pressable onPress={() => router.push('/(auth)/login')} accessibilityRole="link" accessibilityLabel="Log in">
               <Text className="text-[13px] font-bold text-ink">Log in</Text>
             </Pressable>
           </View>

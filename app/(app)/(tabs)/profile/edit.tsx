@@ -123,7 +123,7 @@ export default function EditProfileScreen() {
           contentContainerClassName="pb-8"
         >
           <View className="items-center mb-6 mt-2">
-            <Pressable onPress={openSheet} className="active:opacity-70">
+            <Pressable onPress={openSheet} className="active:opacity-70" accessibilityRole="button" accessibilityLabel="Change profile photo">
               <Avatar name={name || profile.name} size={90} uri={displayUri} />
               <View
                 style={{ backgroundColor: colors.brand }}
@@ -137,15 +137,15 @@ export default function EditProfileScreen() {
             </Text>
           </View>
 
-          <TextField
-            label="Name"
-            value={name}
-            onChangeText={setName}
-            placeholder="Your full name"
-            autoCapitalize="words"
-          />
-
-          <View className="h-4" />
+          <View className="mb-4">
+            <TextField
+              label="Name"
+              value={name}
+              onChangeText={setName}
+              placeholder="Your full name"
+              autoCapitalize="words"
+            />
+          </View>
 
           <TextField
             label="Username"

@@ -30,8 +30,8 @@ export function useUnreadCount() {
     queryKey: queryKeys.notifications.unreadCount(),
     queryFn: ({ signal }) => notifApi.getUnreadCount({ signal }),
     enabled: hasTokens,
-    staleTime: 30_000,
-    refetchInterval: 60_000,
+    staleTime: 120_000,
+    refetchInterval: 300_000,
   });
 }
 

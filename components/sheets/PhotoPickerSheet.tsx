@@ -78,6 +78,8 @@ const PhotoPickerSheet = forwardRef<BottomSheet, PhotoPickerSheetProps>(
                 key={opt.action}
                 onPress={handlers[opt.action]}
                 className="flex-row items-center gap-3 py-[14px] px-1 active:opacity-70"
+                accessibilityRole="button"
+                accessibilityLabel={opt.label}
               >
                 <Icon
                   name={opt.icon}

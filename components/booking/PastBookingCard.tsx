@@ -31,9 +31,9 @@ export default function PastBookingCard({
   const colors = useColors();
 
   return (
-    <Card onPress={onPress} elevated className="mb-[10px]">
+    <Card onPress={onPress} elevated className="mb-[10px]" accessibilityLabel={`Past booking with ${barberName}, ${serviceName}`}>
       <View className="flex-row items-center gap-3">
-        <Avatar name={barberName} size={42} uri={barberProfileImage ?? undefined} />
+        <Avatar name={barberName} size={44} uri={barberProfileImage ?? undefined} />
         <View className="flex-1 min-w-0">
           <Text className="text-[15px] font-semibold text-ink tracking-[-0.2px]" numberOfLines={1}>
             {barberName}
@@ -54,7 +54,7 @@ export default function PastBookingCard({
       </View>
 
       {!hasReview && onReview && (
-        <Pressable onPress={onReview} className="mt-3 pt-3 border-t-[0.5px] border-separator active:opacity-70">
+        <Pressable onPress={onReview} className="mt-3 pt-3 border-t-[0.5px] border-separator active:opacity-70" accessibilityRole="button" accessibilityLabel="Leave a review">
           <View className="flex-row items-center justify-center gap-[6px]">
             <Icon name="star" size={14} color={colors.brand} />
             <Text className="text-[14px] font-semibold text-brand">Leave a review</Text>

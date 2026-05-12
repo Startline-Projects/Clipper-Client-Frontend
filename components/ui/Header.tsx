@@ -16,8 +16,10 @@ export default function Header({ title, subtitle, onBack, right }: HeaderProps) 
         {onBack && (
           <Pressable
             onPress={onBack}
-            hitSlop={8}
-            className="pr-[2px] py-1"
+            hitSlop={12}
+            className="px-2 py-2"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
           >
             <Icon name="back" size={24} />
           </Pressable>
@@ -25,7 +27,7 @@ export default function Header({ title, subtitle, onBack, right }: HeaderProps) 
         <View className="flex-1">
           <Text
             className={`font-extrabold text-ink tracking-[-0.6px] ${
-              onBack ? 'text-[20px]' : 'text-[30px]'
+              onBack ? 'text-[20px]' : 'text-[28px]'
             }`}
             numberOfLines={1}
           >

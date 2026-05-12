@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { InteractionManager, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
@@ -57,8 +57,8 @@ export async function registerPushToken(): Promise<string | null> {
   const platform = Platform.OS === 'ios' ? 'ios' : 'android';
   try {
     await registerDeviceToken({ token, platform });
-  } catch {
-    // Best-effort — don't block app launch
+  } catch (err) {
+    console.warn('[push] Failed to register device token:', err);
   }
 
   return token;
@@ -82,7 +82,7 @@ export function handleNotificationTap(
 
   if (data.conversationId) {
     router.navigate('/(app)/(tabs)/messages');
-    setTimeout(() => router.push(`/(app)/(tabs)/messages/${data.conversationId}`), 50);
+    InteractionManager.runAfterInteractions(() => router.push(`/(app)/(tabs)/messages/${data.conversationId}`));
     return;
   }
 
@@ -93,19 +93,19 @@ export function handleNotificationTap(
 
   if (isArrangementType && data.recurringBookingId) {
     router.navigate('/(app)/(tabs)/bookings');
-    setTimeout(() => router.push(`/(app)/(tabs)/bookings/arrangements/${data.recurringBookingId}`), 50);
+    InteractionManager.runAfterInteractions(() => router.push(`/(app)/(tabs)/bookings/arrangements/${data.recurringBookingId}`));
     return;
   }
 
   if (data.bookingId) {
     router.navigate('/(app)/(tabs)/bookings');
-    setTimeout(() => router.push(`/(app)/(tabs)/bookings/${data.bookingId}`), 50);
+    InteractionManager.runAfterInteractions(() => router.push(`/(app)/(tabs)/bookings/${data.bookingId}`));
     return;
   }
 
   if (data.recurringBookingId) {
     router.navigate('/(app)/(tabs)/bookings');
-    setTimeout(() => router.push(`/(app)/(tabs)/bookings/recurring/${data.recurringBookingId}`), 50);
+    InteractionManager.runAfterInteractions(() => router.push(`/(app)/(tabs)/bookings/recurring/${data.recurringBookingId}`));
     return;
   }
 

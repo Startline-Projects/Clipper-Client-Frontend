@@ -36,6 +36,9 @@ export default function PlanSelector({ selected, onSelect }: PlanSelectorProps) 
           <Pressable
             key={plan.key}
             onPress={() => onSelect(plan.key)}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: active }}
+            accessibilityLabel={`${plan.label} plan, ${plan.price}${plan.period}`}
             className="active:opacity-80"
             style={{
               borderWidth: active ? 2 : 1,
@@ -53,7 +56,7 @@ export default function PlanSelector({ selected, onSelect }: PlanSelectorProps) 
                   position: 'absolute',
                   top: -9,
                   right: 16,
-                  backgroundColor: '#C47F17',
+                  backgroundColor: colors.badgeRecurring,
                   borderRadius: 20,
                   paddingHorizontal: 10,
                   paddingVertical: 2,

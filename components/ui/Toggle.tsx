@@ -1,4 +1,5 @@
 import { Pressable, Switch, Text, View } from 'react-native';
+import { useColors } from '@/lib/theme/colors';
 
 interface ToggleProps {
   on: boolean;
@@ -8,10 +9,14 @@ interface ToggleProps {
 }
 
 export default function Toggle({ on, onToggle, label, sub }: ToggleProps) {
+  const colors = useColors();
   return (
     <Pressable
       onPress={onToggle}
       className="flex-row items-center justify-between py-[11px] gap-3"
+      accessibilityRole="switch"
+      accessibilityState={{ checked: on }}
+      accessibilityLabel={label}
     >
       <View className="flex-1">
         <Text className="text-[15px] font-medium text-ink tracking-[-0.2px]">
@@ -27,8 +32,8 @@ export default function Toggle({ on, onToggle, label, sub }: ToggleProps) {
       <Switch
         value={on}
         onValueChange={onToggle}
-        trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-        thumbColor="#FFFFFF"
+        trackColor={{ false: colors.separatorOpaque, true: colors.green }}
+        thumbColor={colors.white}
       />
     </Pressable>
   );

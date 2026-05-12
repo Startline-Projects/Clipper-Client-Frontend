@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Text, View } from 'react-native';
 import Avatar from '@/components/ui/Avatar';
 import Icon from '@/components/ui/Icon';
@@ -13,7 +14,7 @@ interface ReviewCardProps {
   createdAt: string;
 }
 
-export default function ReviewCard({
+export default memo(function ReviewCard({
   reviewerName,
   reviewerImage,
   rating,
@@ -37,7 +38,7 @@ export default function ReviewCard({
               key={i}
               name="star"
               size={11}
-              color={i <= rating ? '#F5A623' : colors.bgMuted}
+              color={i <= rating ? colors.star : colors.bgMuted}
             />
           ))}
         </View>
@@ -54,4 +55,4 @@ export default function ReviewCard({
       </Text>
     </Card>
   );
-}
+})

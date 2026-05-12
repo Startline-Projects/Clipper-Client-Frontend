@@ -53,6 +53,9 @@ export default function Btn({
     <Pressable
       onPress={onPress}
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
       className={`flex-row items-center justify-center gap-[6px] rounded-md py-[14px] px-[22px] ${
         containerStyles[variant]
       } ${full ? 'w-full' : ''} ${disabled ? 'opacity-40' : 'active:opacity-70'} ${className ?? ''}`}

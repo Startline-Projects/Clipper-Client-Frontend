@@ -36,6 +36,8 @@ export default function NextBookingCard({
       onPress={onPress}
       style={{ borderLeftWidth: 3, borderLeftColor: colors.brand }}
       className="bg-card rounded-lg p-4 mb-sm shadow-sm shadow-black/6 active:opacity-80"
+      accessibilityRole="button"
+      accessibilityLabel={`Next booking with ${barberName}, ${serviceName}`}
     >
       <View className="flex-row gap-3">
         <Avatar name={barberName} size={48} uri={barberProfileImage ?? undefined} />
@@ -62,7 +64,7 @@ export default function NextBookingCard({
 
           <View className="flex-row items-center gap-2 mt-[8px]">
             <StatusBadge status={status} />
-            {isRecurring && <Badge label="Recurring" color="#C47F17" bg="#FDF3E0" />}
+            {isRecurring && <Badge label="Recurring" color={colors.badgeRecurring} bg={colors.badgeRecurringBg} />}
           </View>
         </View>
       </View>

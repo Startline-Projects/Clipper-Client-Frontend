@@ -36,6 +36,9 @@ export default function ServiceSelector({
           <Pressable
             key={s.id}
             onPress={() => !isDisabled && onToggle(s.id)}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: isSelected, disabled: isDisabled }}
+            accessibilityLabel={`${s.name}, ${s.durationMinutes} minutes, ${formatCurrency(s.regularPrice)}`}
             style={{
               borderWidth: isSelected ? 2 : 1,
               borderColor: isSelected ? colors.brand : colors.separatorOpaque,
@@ -73,7 +76,7 @@ export default function ServiceSelector({
                     justifyContent: 'center',
                   }}
                 >
-                  {isSelected && <Icon name="check" size={14} color="#fff" />}
+                  {isSelected && <Icon name="check" size={14} color={colors.white} />}
                 </View>
               </View>
             </View>

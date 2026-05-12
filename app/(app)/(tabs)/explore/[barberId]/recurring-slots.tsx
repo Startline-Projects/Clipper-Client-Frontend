@@ -102,10 +102,13 @@ export default function RecurringSlotsScreen() {
                   setSelectedSlot(null);
                   setFrequency(null);
                 }}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isSel }}
+                accessibilityLabel={DAY_NAMES_SHORT[dow]}
                 style={{
                   borderWidth: isSel ? 2 : 1,
-                  borderColor: isSel ? '#C47F17' : colors.separatorOpaque,
-                  backgroundColor: isSel ? '#C47F17' : colors.card,
+                  borderColor: isSel ? colors.badgeRecurring : colors.separatorOpaque,
+                  backgroundColor: isSel ? colors.badgeRecurring : colors.card,
                   paddingVertical: 10,
                   paddingHorizontal: 16,
                   borderRadius: 20,
@@ -115,7 +118,7 @@ export default function RecurringSlotsScreen() {
                 className="active:opacity-70"
               >
                 <Text
-                  style={{ color: isSel ? '#fff' : colors.ink }}
+                  style={{ color: isSel ? colors.white : colors.ink }}
                   className="text-[13px] font-bold"
                 >
                   {DAY_NAMES_SHORT[dow]}
@@ -158,9 +161,12 @@ export default function RecurringSlotsScreen() {
                         key={slot.time}
                         onPress={() => slot.available && setSelectedSlot(slot.time)}
                         disabled={!slot.available}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: isSel, disabled: !slot.available }}
+                        accessibilityLabel={`${formatTime(slot.time)}${!slot.available ? ', taken' : ''}`}
                         style={{
                           backgroundColor: isSel
-                            ? '#C47F17'
+                            ? colors.badgeRecurring
                             : !slot.available
                               ? colors.bgWarm
                               : colors.card,
@@ -176,7 +182,7 @@ export default function RecurringSlotsScreen() {
                             size={16}
                             color={
                               isSel
-                                ? '#fff'
+                                ? colors.white
                                 : slot.available
                                   ? colors.secondary
                                   : colors.tertiary
@@ -185,7 +191,7 @@ export default function RecurringSlotsScreen() {
                           <Text
                             style={{
                               color: isSel
-                                ? '#fff'
+                                ? colors.white
                                 : slot.available
                                   ? colors.ink
                                   : colors.tertiary,
@@ -224,10 +230,13 @@ export default function RecurringSlotsScreen() {
                             key={f}
                             onPress={() => allowed && setFrequency(f)}
                             disabled={!allowed}
+                            accessibilityRole="radio"
+                            accessibilityState={{ selected: isSel, disabled: !allowed }}
+                            accessibilityLabel={f === 'weekly' ? 'Every week' : 'Every 2 weeks'}
                             style={{
                               borderWidth: isSel ? 2 : 1,
-                              borderColor: isSel ? '#C47F17' : colors.separatorOpaque,
-                              backgroundColor: isSel ? '#FFF8ED' : colors.card,
+                              borderColor: isSel ? colors.badgeRecurring : colors.separatorOpaque,
+                              backgroundColor: isSel ? colors.recurringPale : colors.card,
                               opacity: allowed ? 1 : 0.4,
                             }}
                             className="p-[18px] rounded-lg active:opacity-70"
@@ -235,7 +244,7 @@ export default function RecurringSlotsScreen() {
                             <View className="flex-row justify-between items-center">
                               <View>
                                 <Text
-                                  style={{ color: isSel ? '#C47F17' : colors.ink }}
+                                  style={{ color: isSel ? colors.badgeRecurring : colors.ink }}
                                   className="text-[16px] font-semibold"
                                 >
                                   {f === 'weekly' ? 'Every week' : 'Every 2 weeks'}
@@ -247,7 +256,7 @@ export default function RecurringSlotsScreen() {
                                 </Text>
                               </View>
                               {isSel && (
-                                <Icon name="check" size={20} color="#C47F17" />
+                                <Icon name="check" size={20} color={colors.badgeRecurring} />
                               )}
                             </View>
                           </Pressable>

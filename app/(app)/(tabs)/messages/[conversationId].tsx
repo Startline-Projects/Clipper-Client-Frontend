@@ -4,8 +4,6 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
-  Text,
   TextInput,
   View,
 } from 'react-native';
@@ -13,57 +11,16 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
 import Avatar from '@/components/ui/Avatar';
-import Icon from '@/components/ui/Icon';
 import EmptyState from '@/components/feedback/EmptyState';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMessages, useSendMessage } from '@/lib/hooks/useMessages';
 import { useRealtimeMessages } from '@/lib/hooks/useRealtimeMessages';
 import { useConversations } from '@/lib/hooks/useConversations';
 import { queryKeys } from '@/lib/hooks/queryKeys';
+import MessageBubble from '@/components/messaging/MessageBubble';
+import MessageInput from '@/components/messaging/MessageInput';
 import { useColors } from '@/lib/theme/colors';
 import { showErrorToast } from '@/lib/feedback/toast';
-import type { Message } from '@/lib/api/conversations';
-
-function formatMsgTime(iso: string) {
-  const d = new Date(iso);
-  const h = d.getHours();
-  const m = d.getMinutes();
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${ampm}`;
-}
-
-function ChatBubble({ message: m }: { message: Message }) {
-  const isOwn = m.senderRole === 'client';
-
-  return (
-    <View
-      className={`flex-row mb-[6px] ${isOwn ? 'justify-end' : 'justify-start'}`}
-    >
-      <View
-        className={`max-w-[78%] px-[14px] py-[10px] rounded-[20px] ${
-          isOwn
-            ? 'bg-ink rounded-br-[6px]'
-            : 'bg-surface rounded-bl-[6px]'
-        }`}
-      >
-        <Text
-          className={`text-[15px] leading-[21px] tracking-[-0.2px] ${
-            isOwn ? 'text-bg' : 'text-ink'
-          }`}
-        >
-          {m.body}
-        </Text>
-        <Text
-          className={`text-[11px] mt-1 text-right ${
-            isOwn ? 'text-tertiary' : 'text-secondary'
-          }`}
-        >
-          {formatMsgTime(m.createdAt)}
-        </Text>
-      </View>
-    </View>
-  );
-}
 
 export default function ChatScreen() {
   const router = useRouter();
@@ -78,10 +35,13 @@ export default function ChatScreen() {
   const listRef = useRef<FlatList>(null);
   const inputRef = useRef<TextInput>(null);
 
-  const convoQuery = useConversations({});
-  const otherParty = convoQuery.data?.pages
-    .flatMap((p) => p.conversations)
-    .find((c) => c.id === conversationId)?.otherParty;
+  const needsLookup = !name;
+  const convoQuery = useConversations({}, needsLookup);
+  const otherParty = needsLookup
+    ? convoQuery.data?.pages
+        .flatMap((p) => p.conversations)
+        .find((c) => c.id === conversationId)?.otherParty
+    : undefined;
 
   const displayName = name || otherParty?.name || 'Chat';
   const displayPhoto = photo || otherParty?.profilePhotoUrl || undefined;
@@ -97,23 +57,30 @@ export default function ChatScreen() {
 
   useRealtimeMessages(conversationId);
 
-  // GET /messages marks them read server-side; refresh conversations list to update unreadCount badge
+  const didInvalidate = useRef(false);
   useEffect(() => {
-    if (!isLoading && data) {
+    if (!isLoading && data && !didInvalidate.current) {
+      didInvalidate.current = true;
       qc.invalidateQueries({ queryKey: queryKeys.conversations.lists() });
     }
-  }, [isLoading, !!data]);
+  }, [isLoading, data, qc]);
 
   const messages = data?.messages ?? [];
 
+  const textRef = useRef(text);
+  textRef.current = text;
+
   const handleSend = useCallback(() => {
-    const body = text.trim();
+    const body = textRef.current.trim();
     if (!body || send.isPending) return;
     setText('');
     send.mutate(body, {
-      onError: (err) => showErrorToast(err),
+      onError: (err) => {
+        setText(body);
+        showErrorToast(err);
+      },
     });
-  }, [text, send]);
+  }, [send]);
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={['top']}>
@@ -164,32 +131,16 @@ export default function ChatScreen() {
                 <ActivityIndicator className="py-4" color={colors.tertiary} />
               ) : null
             }
-            renderItem={({ item }) => <ChatBubble message={item} />}
+            renderItem={({ item }) => <MessageBubble message={item} />}
           />
         )}
 
-        <View className="flex-row items-center gap-[10px] px-5 py-3 border-t border-separator">
-          <TextInput
-            ref={inputRef}
-            value={text}
-            onChangeText={setText}
-            placeholder="Message..."
-            placeholderTextColor={colors.tertiary}
-            multiline
-            style={{ borderColor: colors.tertiary }}
-            className="flex-1 px-[18px] py-3 rounded-3xl border-[1.5px] bg-bg text-[15px] text-ink tracking-[-0.2px] max-h-[100px]"
-            returnKeyType="send"
-            blurOnSubmit={false}
-            onSubmitEditing={handleSend}
-          />
-          <Pressable
-            onPress={handleSend}
-            className="w-[42px] h-[42px] rounded-full bg-ink items-center justify-center"
-            accessibilityLabel="Send message"
-          >
-            <Icon name="send" size={16} color={colors.bg} />
-          </Pressable>
-        </View>
+        <MessageInput
+          ref={inputRef}
+          value={text}
+          onChangeText={setText}
+          onSend={handleSend}
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

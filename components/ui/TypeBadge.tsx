@@ -22,5 +22,5 @@ export default function TypeBadge({ type }: TypeBadgeProps) {
 
   const [accent, label] = map[type] ?? [colors.quaternary, fallbackLabel];
 
-  return <Badge bg={accent + '14'} color={accent} label={label} />;
+  return <Badge bg={accent + '1A'} color={accent} label={label} />;
 }

@@ -112,7 +112,7 @@ export default function AllReviewsScreen() {
             if (hasNextPage && !isFetchingNextPage) fetchNextPage();
           }}
           onEndReachedThreshold={0.5}
-          contentContainerClassName="pb-6"
+          contentContainerClassName="pb-8"
         />
       )}
     </SafeAreaView>

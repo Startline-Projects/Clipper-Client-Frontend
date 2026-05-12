@@ -32,9 +32,9 @@ export default function RecurringBookingCard({
   const colors = useColors();
 
   return (
-    <Card onPress={onPress} elevated className="mb-[10px]">
+    <Card onPress={onPress} elevated className="mb-[10px]" accessibilityLabel={`Recurring booking with ${barberName}, ${serviceName}`}>
       <View className="flex-row items-center gap-3">
-        <Avatar name={barberName} size={42} uri={barberProfileImage ?? undefined} />
+        <Avatar name={barberName} size={44} uri={barberProfileImage ?? undefined} />
         <View className="flex-1 min-w-0">
           <Text className="text-[15px] font-semibold text-ink tracking-[-0.2px]" numberOfLines={1}>
             {barberName}

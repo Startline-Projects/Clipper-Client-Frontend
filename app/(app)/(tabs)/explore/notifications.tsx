@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
-import { FlatList, Pressable, Text, View } from 'react-native';
+import { useCallback, memo } from 'react';
+import { FlatList, InteractionManager, Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
@@ -20,6 +20,10 @@ const NOTIFICATION_ICON: Record<string, IconName> = {
   recurring_expiring: 'alert',
   new_message: 'chat',
 };
+
+const NotificationSeparator = memo(() => (
+  <View className="h-px bg-separator ml-[68px]" />
+));
 
 export default function NotificationsScreen() {
   const router = useRouter();
@@ -42,11 +46,11 @@ export default function NotificationsScreen() {
         );
       } else if (notification.conversationId) {
         router.navigate('/(app)/(tabs)/messages');
-        setTimeout(() => {
+        InteractionManager.runAfterInteractions(() => {
           router.push(
             `/(app)/(tabs)/messages/${notification.conversationId}`,
           );
-        }, 50);
+        });
       }
     },
     [markRead, router],
@@ -60,6 +64,8 @@ export default function NotificationsScreen() {
         <Pressable
           onPress={() => handlePress(item)}
           className="px-5 py-[14px] active:bg-bg-hover"
+          accessibilityRole="button"
+          accessibilityLabel={`${item.title}${!item.isRead ? ', unread' : ''}`}
           style={
             !item.isRead
               ? { borderLeftWidth: 3, borderLeftColor: colors.brand }
@@ -127,9 +133,7 @@ export default function NotificationsScreen() {
             if (hasNextPage && !isFetchingNextPage) fetchNextPage();
           }}
           onEndReachedThreshold={0.5}
-          ItemSeparatorComponent={() => (
-            <View className="h-px bg-separator ml-[68px]" />
-          )}
+          ItemSeparatorComponent={NotificationSeparator}
         />
       )}
     </SafeAreaView>

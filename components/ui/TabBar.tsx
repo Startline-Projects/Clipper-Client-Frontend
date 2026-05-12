@@ -18,19 +18,33 @@ export default function TabBar({ tabs, active, onChange }: TabBarProps) {
           <Pressable
             key={tab}
             onPress={() => onChange(tab)}
-            style={isActive ? {
-              backgroundColor: colors.surface,
-              shadowColor: '#000',
-              shadowOpacity: 0.06,
-              shadowOffset: { width: 0, height: 1 },
-              shadowRadius: 3,
-              elevation: 1,
-            } : undefined}
-            className="flex-1 py-2 rounded-xs items-center"
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isActive }}
+            accessibilityLabel={tab}
+            style={{
+              flex: 1,
+              paddingVertical: 8,
+              borderRadius: 8,
+              alignItems: 'center',
+              backgroundColor: isActive ? colors.surface : undefined,
+              ...(isActive
+                ? {
+                    shadowColor: '#000',
+                    shadowOpacity: 0.06,
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowRadius: 3,
+                    elevation: 1,
+                  }
+                : {}),
+            }}
           >
             <Text
-              style={{ color: isActive ? colors.ink : colors.tertiary }}
-              className="text-[13px] font-semibold tracking-[-0.1px]"
+              style={{
+                fontSize: 13,
+                fontWeight: '600',
+                letterSpacing: -0.1,
+                color: isActive ? colors.ink : colors.tertiary,
+              }}
             >
               {tab}
             </Text>

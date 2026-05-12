@@ -65,7 +65,7 @@ export default function ProfileScreen() {
     <SafeAreaView className="flex-1 bg-bg" edges={['top']}>
       <ScrollView
         className="flex-1 px-5"
-        contentContainerClassName="pb-8 pt-4"
+        contentContainerClassName="pb-8 pt-2"
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
         }
@@ -96,6 +96,8 @@ export default function ProfileScreen() {
                   ? 'border-b-[0.5px] border-separator'
                   : ''
               }`}
+              accessibilityRole="button"
+              accessibilityLabel={row.label}
             >
               <Icon name={row.icon} size={18} color={colors.secondary} />
               <Text className="flex-1 text-[15px] font-medium text-ink tracking-[-0.2px]">
@@ -117,6 +119,8 @@ export default function ProfileScreen() {
           onPress={handleLogout}
           disabled={logout.isPending}
           className="flex-row items-center justify-center gap-2 py-4 mt-2 active:opacity-70"
+          accessibilityRole="button"
+          accessibilityLabel="Log out"
         >
           <Icon name="logout" size={18} color={colors.red} />
           <Text className="text-[15px] font-semibold text-red">

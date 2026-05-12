@@ -63,10 +63,9 @@ export function useRealtimeMessages(conversationId: string | undefined) {
               if (exists) return old;
 
               const pages = [...old.pages];
-              const lastIdx = pages.length - 1;
-              pages[lastIdx] = {
-                ...pages[lastIdx],
-                messages: [...pages[lastIdx].messages, message],
+              pages[0] = {
+                ...pages[0],
+                messages: [...pages[0].messages, message],
               };
               return { ...old, pages };
             },
@@ -78,7 +77,7 @@ export function useRealtimeMessages(conversationId: string | undefined) {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      try { supabase.removeChannel(channel); } catch {}
     };
   }, [conversationId, qc]);
 }

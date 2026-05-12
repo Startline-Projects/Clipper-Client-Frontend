@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Avatar from '@/components/ui/Avatar';
 import Icon from '@/components/ui/Icon';
@@ -13,7 +14,7 @@ interface ConversationRowProps {
   onPress?: () => void;
 }
 
-export default function ConversationRow({
+export default memo(function ConversationRow({
   name,
   avatarUri,
   lastMessage,
@@ -27,12 +28,14 @@ export default function ConversationRow({
   return (
     <Pressable
       onPress={onPress}
-      className={`flex-row items-center gap-3 px-4 py-[14px] active:opacity-70 ${
+      className={`flex-row items-center gap-3 px-5 py-[14px] active:opacity-70 ${
         isLast ? '' : 'border-b-[0.5px] border-separator'
       }`}
+      accessibilityRole="button"
+      accessibilityLabel={`Conversation with ${name}${unread ? ', unread' : ''}`}
     >
       <View className="relative">
-        <Avatar name={name} size={46} uri={avatarUri ?? undefined} />
+        <Avatar name={name} size={44} uri={avatarUri ?? undefined} />
         {unread && (
           <View className="absolute -top-[1px] -right-[1px] w-3 h-3 rounded-full bg-blue border-[2.5px] border-surface" />
         )}
@@ -65,4 +68,4 @@ export default function ConversationRow({
       <Icon name="chevron" size={16} color={colors.quaternary} />
     </Pressable>
   );
-}
+})

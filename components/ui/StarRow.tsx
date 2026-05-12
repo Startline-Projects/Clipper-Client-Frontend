@@ -32,7 +32,14 @@ export default function StarRow({
 
         if (onChange) {
           return (
-            <Pressable key={i} onPress={() => onChange(i)} hitSlop={4}>
+            <Pressable
+              key={i}
+              onPress={() => onChange(i)}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel={`Rate ${i} star${i > 1 ? 's' : ''}`}
+              accessibilityState={{ selected: i <= value }}
+            >
               {star}
             </Pressable>
           );

@@ -28,10 +28,10 @@ export default function SuccessView({
     <View className="flex-1 items-center justify-center px-8 py-16">
       <Animated.View
         entering={ZoomIn.delay(100).springify()}
-        style={{ backgroundColor: colors.green + '26' }}
-        className="w-[80px] h-[80px] rounded-full items-center justify-center mb-5"
+        style={{ backgroundColor: colors.green + '1A' }}
+        className="w-[68px] h-[68px] rounded-full items-center justify-center mb-4"
       >
-        <Icon name={icon} size={44} color={colors.green} />
+        <Icon name={icon} size={32} color={colors.green} />
       </Animated.View>
       <Animated.Text
         entering={FadeIn.delay(120).duration(300)}

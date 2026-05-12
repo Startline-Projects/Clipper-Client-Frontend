@@ -37,7 +37,7 @@ export default function ErrorView({
         style={{ backgroundColor: colors.red + '1A' }}
         className="w-[68px] h-[68px] rounded-full items-center justify-center mb-4"
       >
-        <Icon name={icon} size={36} color={colors.red} />
+        <Icon name={icon} size={32} color={colors.red} />
       </View>
       <Text className="text-[18px] font-bold text-ink text-center mb-2">
         {title}

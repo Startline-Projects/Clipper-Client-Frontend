@@ -1,11 +1,13 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import type BottomSheet from '@gorhom/bottom-sheet';
 import SearchInput from '@/components/forms/SearchInput';
 import Pill from '@/components/ui/Pill';
 import Icon from '@/components/ui/Icon';
 import BarberCard from '@/components/explore/BarberCard';
+import CategoryFilterSheet from '@/components/explore/CategoryFilterSheet';
 import EmptyState from '@/components/feedback/EmptyState';
 import ErrorView from '@/components/feedback/ErrorView';
 import { BarberCardSkeleton } from '@/components/feedback/SkeletonVariants';
@@ -17,8 +19,10 @@ import {
   useExploreSort,
   useExploreSearch,
   useExploreRecurringFilter,
+  useExploreCategories,
 } from '@/lib/stores/filters';
 import { useColors } from '@/lib/theme/colors';
+import { categoryLabel } from '@/lib/utils/categories';
 import type { BarberListItem } from '@/lib/api/barbers';
 
 export default function ExploreScreen() {
@@ -28,10 +32,14 @@ export default function ExploreScreen() {
   const sort = useExploreSort();
   const search = useExploreSearch();
   const recurringFilter = useExploreRecurringFilter();
+  const categories = useExploreCategories();
   const setSort = useFiltersStore((s) => s.setExploreSort);
   const setSearch = useFiltersStore((s) => s.setExploreSearch);
   const setRecurringFilter = useFiltersStore((s) => s.setExploreRecurringFilter);
+  const setCategories = useFiltersStore((s) => s.setExploreCategories);
   const { data: unreadCount } = useUnreadCount();
+
+  const filterSheetRef = useRef<BottomSheet>(null);
 
   const hasCoords = latitude !== null && longitude !== null;
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -41,10 +49,13 @@ export default function ExploreScreen() {
       sort: sort || undefined,
       search: search || undefined,
       recurring: recurringFilter || undefined,
+      categories: categories.length > 0 ? categories : undefined,
     });
 
   const barbers = data?.pages.flatMap((p) => p.barbers) ?? [];
   const hasUnread = typeof unreadCount === 'number' && unreadCount > 0;
+  const hasActiveFilters =
+    !!search || !!recurringFilter || categories.length > 0;
 
   const renderItem = useCallback(
     ({ item }: { item: BarberListItem }) => (
@@ -56,6 +67,7 @@ export default function ExploreScreen() {
           totalReviews={item.totalReviews}
           distance={item.distance}
           recurringAvailable={item.recurringAvailable}
+          categories={item.categories}
           topServices={item.topServices}
           onPress={() => router.push(`/(app)/(tabs)/explore/${item.id}`)}
         />
@@ -120,7 +132,62 @@ export default function ExploreScreen() {
               )
             }
           />
+          <Pressable
+            onPress={() => filterSheetRef.current?.expand()}
+            style={{
+              backgroundColor:
+                categories.length > 0 ? colors.brand : colors.bg,
+            }}
+            className="flex-row items-center gap-[5px] self-start rounded-full px-3 py-2 active:opacity-70"
+            accessibilityRole="button"
+            accessibilityLabel={
+              categories.length > 0
+                ? `Specialties filter, ${categories.length} selected`
+                : 'Filter by specialties'
+            }
+          >
+            <Icon
+              name="filter"
+              size={13}
+              color={categories.length > 0 ? colors.white : colors.secondary}
+            />
+            <Text
+              style={{
+                color: categories.length > 0 ? colors.white : colors.secondary,
+              }}
+              className="text-[13px] font-semibold tracking-[-0.1px]"
+            >
+              {categories.length > 0
+                ? `Specialties · ${categories.length}`
+                : 'Specialties'}
+            </Text>
+          </Pressable>
         </View>
+
+        {categories.length > 0 && (
+          <View className="flex-row flex-wrap gap-[6px] mb-[14px]">
+            {categories.map((tag) => (
+              <Pressable
+                key={tag}
+                onPress={() =>
+                  setCategories(categories.filter((c) => c !== tag))
+                }
+                style={{ backgroundColor: colors.brandPale }}
+                className="flex-row items-center gap-[5px] rounded-full px-[10px] py-[5px] active:opacity-70"
+                accessibilityRole="button"
+                accessibilityLabel={`Remove ${categoryLabel(tag)} filter`}
+              >
+                <Text
+                  style={{ color: colors.brand }}
+                  className="text-[12px] font-semibold tracking-[-0.1px]"
+                >
+                  {categoryLabel(tag)}
+                </Text>
+                <Icon name="x" size={11} color={colors.brand} />
+              </Pressable>
+            ))}
+          </View>
+        )}
       </View>
 
       {locLoading ? (
@@ -148,12 +215,13 @@ export default function ExploreScreen() {
           title="No barbers found"
           body="Try a different search or adjust your filters."
           cta={
-            (search || recurringFilter)
+            hasActiveFilters
               ? {
                   label: 'Clear filters',
                   onPress: () => {
                     setSearch('');
                     setRecurringFilter(null);
+                    setCategories([]);
                   },
                 }
               : undefined
@@ -171,6 +239,16 @@ export default function ExploreScreen() {
           contentContainerClassName="pb-8"
         />
       )}
+
+      <CategoryFilterSheet
+        ref={filterSheetRef}
+        selected={categories}
+        onApply={(next) => {
+          setCategories(next);
+          filterSheetRef.current?.close();
+        }}
+        onClose={() => {}}
+      />
     </SafeAreaView>
   );
 }

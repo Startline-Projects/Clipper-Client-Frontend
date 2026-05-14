@@ -1,7 +1,11 @@
 import { z } from 'zod';
-import { ServiceType } from '@/lib/schemas/enums';
+import { ServiceType, BarberCategoryTag } from '@/lib/schemas/enums';
 import { apiClient } from './client';
-import type { BarberSort, RecurringFilter } from '@/lib/schemas/enums';
+import type {
+  BarberSort,
+  RecurringFilter,
+  BarberCategoryTag as BarberCategoryTagType,
+} from '@/lib/schemas/enums';
 
 // ── Response schemas ──
 
@@ -18,6 +22,7 @@ const BarberListItemSchema = z.object({
   totalReviews: z.number(),
   distance: DistanceSchema,
   recurringAvailable: z.boolean(),
+  categories: z.array(BarberCategoryTag).default([]),
   topServices: z.array(z.object({ name: z.string() })),
 });
 
@@ -73,6 +78,7 @@ const BarberDetailSchema = z.object({
     phone: z.string().nullable(),
     workingHours: z.array(WorkingHourSchema),
     recurringAvailable: z.boolean(),
+    categories: z.array(BarberCategoryTag).default([]),
     barberName: z.string().nullable().optional(),
     shopName: z.string().nullable().optional(),
   }),
@@ -102,6 +108,7 @@ export interface ListBarbersParams {
   sort?: BarberSort;
   recurring?: RecurringFilter;
   search?: string;
+  categories?: BarberCategoryTagType[];
   page?: number;
   limit?: number;
 }
@@ -116,8 +123,15 @@ export async function listBarbers(
   params: ListBarbersParams,
   opts: RequestOptions = {},
 ): Promise<ListBarbersResponse> {
+  const { categories, ...rest } = params;
   const { data } = await apiClient.get('/client/barbers', {
-    params,
+    params: {
+      ...rest,
+      // API accepts a comma-separated list of category tags.
+      ...(categories && categories.length > 0
+        ? { categories: categories.join(',') }
+        : {}),
+    },
     signal: opts.signal,
   });
   return ListBarbersResponseSchema.parse(data);

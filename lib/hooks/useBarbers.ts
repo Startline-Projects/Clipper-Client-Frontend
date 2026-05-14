@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { queryKeys } from './queryKeys';
 import type { BarbersFilters } from './queryKeys';
 import * as barbersApi from '@/lib/api/barbers';
@@ -14,6 +14,7 @@ export function useBarbers(filters: BarbersFilters) {
           sort: filters.sort,
           search: filters.search,
           recurring: filters.recurring,
+          categories: filters.categories,
           page: pageParam,
         },
         { signal },
@@ -23,6 +24,9 @@ export function useBarbers(filters: BarbersFilters) {
       last.pagination.hasNextPage
         ? last.pagination.currentPage + 1
         : undefined,
+    // Keep the current list visible while a filter/search change refetches,
+    // so the screen doesn't flash to skeletons on every category toggle.
+    placeholderData: keepPreviousData,
   });
 }
 

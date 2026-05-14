@@ -61,6 +61,22 @@ export const SenderRole = z.enum(['barber', 'client']);
 
 export const ThemePreference = z.enum(['system', 'light', 'dark']);
 
+export const BarberCategoryTag = z.enum([
+  'ALL_GENDER_CUTS',
+  'KIDS_CUTS',
+  'CURLY_HAIR_SPECIALIST',
+  'AFRO_HAIR_SPECIALIST',
+  'BRAIDS',
+  'BEARD_SPECIALIST',
+  'SKIN_FADES',
+  'WOMENS_HAIRCUTS',
+  'LOCS_DREADLOCKS',
+  'HAIR_DESIGN',
+  'SHAVES',
+  'MOBILE_BARBER',
+  'IN_HOUSE_SERVICES',
+]);
+
 export type ServiceType = z.infer<typeof ServiceType>;
 export type BookingType = z.infer<typeof BookingType>;
 export type BookingStatus = z.infer<typeof BookingStatus>;
@@ -79,3 +95,4 @@ export type CancelledBy = z.infer<typeof CancelledBy>;
 export type DevicePlatform = z.infer<typeof DevicePlatform>;
 export type SenderRole = z.infer<typeof SenderRole>;
 export type ThemePreference = z.infer<typeof ThemePreference>;
+export type BarberCategoryTag = z.infer<typeof BarberCategoryTag>;

@@ -4,6 +4,8 @@ import Avatar from '@/components/ui/Avatar';
 import Badge from '@/components/ui/Badge';
 import Icon from '@/components/ui/Icon';
 import { useColors } from '@/lib/theme/colors';
+import { categoryLabel } from '@/lib/utils/categories';
+import type { BarberCategoryTag } from '@/lib/schemas/enums';
 
 interface BarberCardProps {
   name: string;
@@ -12,9 +14,12 @@ interface BarberCardProps {
   totalReviews: number;
   distance: { km: number; miles: number };
   recurringAvailable: boolean;
+  categories?: BarberCategoryTag[];
   topServices: { name: string }[];
   onPress?: () => void;
 }
+
+const MAX_VISIBLE_CATEGORIES = 3;
 
 export default memo(function BarberCard({
   name,
@@ -23,10 +28,13 @@ export default memo(function BarberCard({
   totalReviews,
   distance,
   recurringAvailable,
+  categories = [],
   topServices,
   onPress,
 }: BarberCardProps) {
   const colors = useColors();
+  const visibleCategories = categories.slice(0, MAX_VISIBLE_CATEGORIES);
+  const extraCategories = categories.length - visibleCategories.length;
 
   return (
     <Pressable
@@ -79,6 +87,32 @@ export default memo(function BarberCard({
           >
             {topServices.map((s) => s.name).join(' · ')}
           </Text>
+
+          {visibleCategories.length > 0 && (
+            <View className="flex-row flex-wrap gap-[5px] mt-[8px]">
+              {visibleCategories.map((tag) => (
+                <View
+                  key={tag}
+                  style={{ backgroundColor: colors.bgWarm }}
+                  className="rounded-full px-[8px] py-[3px]"
+                >
+                  <Text className="text-[11px] font-medium text-secondary tracking-[-0.1px]">
+                    {categoryLabel(tag)}
+                  </Text>
+                </View>
+              ))}
+              {extraCategories > 0 && (
+                <View
+                  style={{ backgroundColor: colors.bgWarm }}
+                  className="rounded-full px-[8px] py-[3px]"
+                >
+                  <Text className="text-[11px] font-medium text-tertiary tracking-[-0.1px]">
+                    +{extraCategories}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
         </View>
       </View>
     </Pressable>

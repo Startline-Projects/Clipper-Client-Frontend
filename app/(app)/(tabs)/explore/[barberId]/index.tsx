@@ -21,6 +21,7 @@ import { useSubscription } from '@/lib/hooks/useSubscription';
 import { useSubscribedPlan } from '@/lib/stores/payment-method';
 import { useColors } from '@/lib/theme/colors';
 import { formatCurrency } from '@/lib/utils/format';
+import { categoryLabel } from '@/lib/utils/categories';
 
 export default function BarberDetailScreen() {
   const router = useRouter();
@@ -217,6 +218,27 @@ export default function BarberDetailScreen() {
         </View>
 
         <View className="px-5 mt-7">
+          {barber.categories.length > 0 && (
+            <Section title="Specialties">
+              <View className="flex-row flex-wrap gap-[8px]">
+                {barber.categories.map((tag) => (
+                  <View
+                    key={tag}
+                    style={{
+                      backgroundColor: colors.bgWarm,
+                      borderColor: colors.separatorOpaque,
+                    }}
+                    className="rounded-full border px-[13px] py-[8px]"
+                  >
+                    <Text className="text-[13px] font-semibold text-secondary tracking-[-0.1px]">
+                      {categoryLabel(tag)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </Section>
+          )}
+
           <Section title="Services">
             {services.map((s) => (
               <Card key={s.id} className="mb-[10px] flex-row items-start justify-between">

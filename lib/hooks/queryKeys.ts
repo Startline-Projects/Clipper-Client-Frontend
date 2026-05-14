@@ -1,4 +1,4 @@
-import type { BarberSort, RecurringFilter, RecurringStatus, RecurringArrangementStatus } from '@/lib/schemas/enums';
+import type { BarberSort, RecurringFilter, RecurringStatus, RecurringArrangementStatus, BarberCategoryTag } from '@/lib/schemas/enums';
 
 export interface BarbersFilters {
   latitude: number;
@@ -6,6 +6,7 @@ export interface BarbersFilters {
   sort?: BarberSort;
   search?: string;
   recurring?: RecurringFilter;
+  categories?: BarberCategoryTag[];
 }
 
 export interface RecurringBookingsFilters {

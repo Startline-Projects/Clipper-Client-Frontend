@@ -3,7 +3,7 @@ import { useAuthStore } from '@/lib/stores/auth.store';
 import { queryKeys } from './queryKeys';
 import { invalidations } from './invalidations';
 import * as subApi from '@/lib/api/subscriptions';
-import type { SubscriptionState, ActivePlanResponse } from '@/lib/api/subscriptions';
+import type { SubscriptionState } from '@/lib/api/subscriptions';
 
 export function useSubscription() {
   const hasTokens = useAuthStore((s) => Boolean(s.accessToken));
@@ -26,10 +26,12 @@ export function useActivePlan() {
 }
 
 export function useCreateSubscription() {
+  const qc = useQueryClient();
   return useMutation({
     meta: { silent: true },
     mutationFn: (body: subApi.CreateSubscriptionBody) =>
       subApi.createSubscription(body),
+    onSuccess: () => invalidations.subscriptionChanged(qc),
   });
 }
 
@@ -37,7 +39,22 @@ export function useSwitchPlan() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => subApi.switchPlan({ plan: 'yearly' }),
-    onSuccess: () => invalidations.subscriptionChanged(qc),
+    onSuccess: (data) => {
+      qc.setQueryData<SubscriptionState>(queryKeys.subscription.me(), data);
+      qc.invalidateQueries({ queryKey: queryKeys.subscription.activePlan() });
+      qc.invalidateQueries({ queryKey: queryKeys.profile.me() });
+    },
+  });
+}
+
+export function useReactivateSubscription() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => subApi.reactivateSubscription(),
+    onSuccess: (data) => {
+      qc.setQueryData<SubscriptionState>(queryKeys.subscription.me(), data);
+      invalidations.subscriptionChanged(qc);
+    },
   });
 }
 

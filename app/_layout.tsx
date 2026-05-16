@@ -14,6 +14,7 @@ import { queryClient } from '@/lib/utils/query-client';
 import { useAuthStore } from '@/lib/stores/auth.store';
 import { useTheme } from '@/lib/hooks/useTheme';
 import { useThemeHasHydrated } from '@/lib/stores/theme';
+import { useEmailVerifyDeepLink } from '@/lib/hooks/useEmailVerifyDeepLink';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -83,6 +84,7 @@ const darkVars = vars({
 
 function RootInner() {
   const theme = useTheme();
+  useEmailVerifyDeepLink();
 
   return (
     <View style={[{ flex: 1 }, theme === 'dark' ? darkVars : lightVars]}>

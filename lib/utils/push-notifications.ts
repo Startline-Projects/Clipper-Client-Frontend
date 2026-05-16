@@ -88,6 +88,17 @@ function resolveTapTarget(
     return `/(app)/(tabs)/bookings/arrangements/${data.recurringBookingId}`;
   }
 
+  const isSubscriptionType =
+    data.type === 'subscription_activated' ||
+    data.type === 'subscription_reactivated' ||
+    data.type === 'subscription_cancel_scheduled' ||
+    data.type === 'subscription_cancelled' ||
+    data.type === 'subscription_past_due';
+
+  if (isSubscriptionType) {
+    return '/(app)/(tabs)/profile/subscription';
+  }
+
   if (data.bookingId) {
     return `/(app)/(tabs)/bookings/${data.bookingId}`;
   }

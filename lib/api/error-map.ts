@@ -57,7 +57,12 @@ export function mapApiError(err: unknown): MappedError {
         return base;
       case 'PLAN_DOWNGRADE_NOT_ALLOWED':
         base.title = "Can't downgrade";
-        base.message = 'Cancel your current plan first';
+        base.message =
+          'Downgrading to monthly is not supported. Please cancel and re-subscribe.';
+        return base;
+      case 'SUBSCRIPTION_NOT_SCHEDULED_FOR_CANCELLATION':
+        base.title = 'Unable to reactivate';
+        base.message = 'Your subscription is not scheduled for cancellation.';
         return base;
       case 'ACTIVE_SUBSCRIPTION':
         base.title = 'Already subscribed';

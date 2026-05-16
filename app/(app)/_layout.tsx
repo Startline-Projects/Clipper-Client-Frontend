@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { Redirect, Stack } from 'expo-router';
+import { View } from 'react-native';
+import { Redirect, Stack, useSegments } from 'expo-router';
 import { useAuthStore } from '@/lib/stores/auth.store';
 import { useProfile } from '@/lib/hooks/useProfile';
 import { useSubscriptionGate } from '@/lib/hooks/useSubscriptionGate';
@@ -9,6 +10,7 @@ import {
   registerPushToken,
   setupNotificationListeners,
 } from '@/lib/utils/push-notifications';
+import EmailVerificationBanner from '@/components/feedback/EmailVerificationBanner';
 
 export default function AppLayout() {
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -29,7 +31,17 @@ export default function AppLayout() {
     return cleanup;
   }, [accessToken]);
 
+  const segments = useSegments();
+  const onVerifyScreen = segments[1] === 'verify-email';
+
   if (!accessToken) return <Redirect href="/(auth)/welcome" />;
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <View className="flex-1">
+      {!onVerifyScreen && <EmailVerificationBanner />}
+      <View className="flex-1">
+        <Stack screenOptions={{ headerShown: false }} />
+      </View>
+    </View>
+  );
 }

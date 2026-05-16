@@ -111,6 +111,7 @@ const RecurringBookingDetailSchema = z.object({
     services: z.array(RecurringBookingServiceSchema),
     totalDurationMinutes: z.number(),
     barber: z.object({ id: z.string(), name: z.string() }),
+    barberProfilePhotoUrl: z.string().nullable().optional(),
     client: z.object({ id: z.string(), name: z.string() }),
     createdAt: z.string(),
     barberAcceptedAt: z.string().nullable(),

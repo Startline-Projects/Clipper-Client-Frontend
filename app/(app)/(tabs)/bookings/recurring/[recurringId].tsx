@@ -142,7 +142,11 @@ export default function RecurringDetailScreen() {
         {/* Header card */}
         <Card className="p-5 mb-4">
           <View className="flex-row items-center gap-3 pb-4 mb-4 border-b border-separator">
-            <Avatar name={recurring.barber.name} size={48} />
+            <Avatar
+              name={recurring.barber.name}
+              size={48}
+              uri={recurring.barberProfilePhotoUrl ?? undefined}
+            />
             <View className="flex-1">
               <Text className="text-[16px] font-semibold text-ink tracking-[-0.2px]">
                 {recurring.barber.name}

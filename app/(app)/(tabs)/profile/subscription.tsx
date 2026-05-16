@@ -14,6 +14,7 @@ import {
   useSwitchPlan,
   useCancelSubscription,
   useReplacePaymentMethod,
+  useReactivateSubscription,
 } from '@/lib/hooks/useSubscription';
 import { usePaymentMethodStore } from '@/lib/stores/payment-method';
 import { useColors } from '@/lib/theme/colors';
@@ -30,14 +31,24 @@ export default function SubscriptionScreen() {
   const switchPlan = useSwitchPlan();
   const cancelSub = useCancelSubscription();
   const replaceCard = useReplacePaymentMethod();
+  const reactivate = useReactivateSubscription();
   const [showCardSheet, setShowCardSheet] = useState(false);
 
   if (isLoading || !sub) return <LoadingSpinner />;
 
-  // Use local store as fallback when backend hasn't caught up (webhook delay)
-  const isActive = sub.status === 'active' || (sub.status === 'inactive' && subscribedPlan !== null);
-  const isInactive = sub.status === 'inactive' && subscribedPlan === null;
+  const isActive = sub.status === 'active';
+  const isInactive = sub.status === 'inactive';
   const isPastDue = sub.status === 'past_due';
+  const isCancelled = sub.status === 'cancelled';
+  const showKeepBtn = isActive && sub.cancelAtPeriodEnd;
+  const showRenewBtn = isCancelled || isPastDue;
+
+  const handleKeepSubscription = () => {
+    reactivate.mutate(undefined, {
+      onSuccess: () => showSuccessToast('Your subscription has been reactivated.'),
+      onError: (err) => showErrorToast(err),
+    });
+  };
 
   const handleCancel = async () => {
     const yes = await confirm({
@@ -114,7 +125,22 @@ export default function SubscriptionScreen() {
             {sub.cancelAtPeriodEnd && (
               <Badge label="Cancelling" color={colors.red} bg={colors.red + '1A'} small />
             )}
+            {isCancelled && (
+              <Badge label="Subscription ended" color={colors.red} bg={colors.red + '1A'} small />
+            )}
           </View>
+
+          {showKeepBtn && sub.currentPeriodEnd && (
+            <View
+              className="mb-3 p-3 rounded-md flex-row items-center gap-2"
+              style={{ backgroundColor: colors.red + '0D' }}
+            >
+              <Icon name="alert" size={14} color={colors.red} />
+              <Text className="text-[13px] text-secondary flex-1">
+                Cancels on {formatDate(sub.currentPeriodEnd.slice(0, 10))}
+              </Text>
+            </View>
+          )}
 
           {isActive && (sub.plan || subscribedPlan) && (
             <>
@@ -163,6 +189,23 @@ export default function SubscriptionScreen() {
           {isInactive && (
             <Btn
               label="Subscribe Now"
+              full
+              onPress={() => router.push('/(app)/paywall')}
+            />
+          )}
+
+          {showKeepBtn && (
+            <Btn
+              label={reactivate.isPending ? 'Reactivating...' : 'Keep Subscription'}
+              full
+              onPress={handleKeepSubscription}
+              disabled={reactivate.isPending}
+            />
+          )}
+
+          {showRenewBtn && (
+            <Btn
+              label="Renew Subscription"
               full
               onPress={() => router.push('/(app)/paywall')}
             />

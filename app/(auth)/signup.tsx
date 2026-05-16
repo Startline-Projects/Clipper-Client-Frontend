@@ -83,14 +83,13 @@ export default function SignupScreen() {
       },
       {
         onError: (err: any) => {
-          const msg: string =
-            err?.message ?? 'Something went wrong. Try again.';
+          const msg: string = err?.message ?? '';
           if (/email.*already|already.*registered/i.test(msg)) {
             setErrors((e) => ({ ...e, email: 'This email is already registered' }));
           } else if (/username.*taken|username.*already/i.test(msg)) {
             setErrors((e) => ({ ...e, username: 'This username is already taken' }));
           } else {
-            showErrorToast(null, msg);
+            showErrorToast(err, 'Sign up failed. Please try again.');
           }
         },
       },

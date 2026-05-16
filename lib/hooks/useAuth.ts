@@ -13,14 +13,17 @@ export function useRegister() {
     meta: { silent: true },
     mutationFn: async ({ name, ...body }: RegisterInput) => {
       const tokens = await authApi.register(body);
-      return { tokens, name };
+      return { tokens, name, email: body.email };
     },
-    onSuccess: async ({ tokens, name }) => {
-      const { setTokens, markLaunched } = useAuthStore.getState();
+    onSuccess: async ({ tokens, name, email }) => {
+      const { setTokens, markLaunched, setEmail, setEmailVerified } =
+        useAuthStore.getState();
       await setTokens(tokens.accessToken, tokens.refreshToken);
       if (name) {
         try { await updateProfile({ name }); } catch {}
       }
+      await setEmail(email);
+      await setEmailVerified(false);
       await markLaunched();
     },
   });
@@ -31,9 +34,11 @@ export function useLogin() {
     meta: { silent: true },
     mutationFn: (body: authApi.LoginBody) => authApi.login(body),
     onSuccess: async (res) => {
-      const { setTokens, setUser, markLaunched } = useAuthStore.getState();
+      const { setTokens, setUser, markLaunched, setEmail } =
+        useAuthStore.getState();
       await setTokens(res.accessToken, res.refreshToken);
       setUser({ id: res.id, email: res.email, username: res.username });
+      await setEmail(res.email);
       await markLaunched();
     },
   });

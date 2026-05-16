@@ -1,4 +1,5 @@
-import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Avatar from '@/components/ui/Avatar';
@@ -11,15 +12,17 @@ import { useProfile } from '@/lib/hooks/useProfile';
 import { useClientNoShows } from '@/lib/hooks/useNoShows';
 import { useLogout } from '@/lib/hooks/useAuth';
 import { formatCurrency } from '@/lib/utils/format';
-import { useIsAuthenticated } from '@/lib/stores/auth.store';
+import { useAuthStore, useIsAuthenticated } from '@/lib/stores/auth.store';
 import { useColors } from '@/lib/theme/colors';
 import { confirm } from '@/lib/feedback/confirm';
+import { resendVerification } from '@/lib/api/auth';
 
 const MENU_ROWS = [
   { key: 'edit', icon: 'user' as const, label: 'Edit Profile' },
   { key: 'subscription', icon: 'card' as const, label: 'Subscription' },
   { key: 'payment', icon: 'card' as const, label: 'Payment Method' },
   { key: 'noShows', icon: 'alert' as const, label: 'No-Show Payments' },
+  { key: 'verifyEmail', icon: 'shield' as const, label: 'Verify Email' },
   { key: 'password', icon: 'shield' as const, label: 'Change Password' },
 ] as const;
 
@@ -32,11 +35,39 @@ export default function ProfileScreen() {
   const { data: profile, isLoading, isError, error, refetch, isRefetching } = useProfile();
   const { data: noShows } = useClientNoShows();
   const logout = useLogout();
+  const email = useAuthStore((s) => s.email);
+  const emailVerified = useAuthStore((s) => s.emailVerified);
+  const [resending, setResending] = useState(false);
 
   const owedNoShows = (noShows?.items ?? []).filter((i) => OWING_STATUSES.has(i.status));
   const owedCount = owedNoShows.length;
   const owedAmount = owedNoShows.reduce((s, i) => s + i.amountUsd, 0);
   const hasBlocked = owedCount >= 3;
+
+  const handleVerifyEmail = async () => {
+    if (emailVerified === true) {
+      Alert.alert('Email verified', 'Your email is already verified.');
+      return;
+    }
+    const target = email ?? profile?.email;
+    if (!target) {
+      Alert.alert('Missing email', 'No email on file for this account.');
+      return;
+    }
+    try {
+      setResending(true);
+      await resendVerification({ email: target });
+      Alert.alert(
+        'Verification email sent',
+        `We sent a verification link to ${target}. Tap it to verify your address.`,
+      );
+    } catch (e) {
+      const msg = (e as Error)?.message ?? 'Please try again.';
+      Alert.alert('Could not send', msg);
+    } finally {
+      setResending(false);
+    }
+  };
 
   const handleMenuPress = (key: string) => {
     switch (key) {
@@ -51,6 +82,9 @@ export default function ProfileScreen() {
         break;
       case 'noShows':
         router.push('/(app)/(tabs)/profile/no-shows');
+        break;
+      case 'verifyEmail':
+        void handleVerifyEmail();
         break;
       case 'password':
         router.push('/(app)/(tabs)/profile/change-password');
@@ -137,11 +171,15 @@ export default function ProfileScreen() {
         <Card className="mb-4 overflow-hidden">
           {MENU_ROWS.map((row, i) => {
             const isNoShows = row.key === 'noShows';
+            const isVerify = row.key === 'verifyEmail';
             const showBadge = isNoShows && owedCount > 0;
+            const verified = isVerify && emailVerified === true;
+            const verifyPending = isVerify && resending;
             return (
               <Pressable
                 key={row.key}
                 onPress={() => handleMenuPress(row.key)}
+                disabled={verifyPending}
                 className={`flex-row items-center gap-3 px-4 py-[14px] active:opacity-70 ${
                   i < MENU_ROWS.length - 1
                     ? 'border-b-[0.5px] border-separator'
@@ -165,6 +203,14 @@ export default function ProfileScreen() {
                   >
                     <Text className="text-[11px] font-bold text-white">{owedCount}</Text>
                   </View>
+                )}
+                {isVerify && (
+                  <Text
+                    className="text-[12px] font-semibold mr-1"
+                    style={{ color: verified ? colors.secondary : colors.tertiary }}
+                  >
+                    {verifyPending ? 'Sending…' : verified ? 'Verified' : 'Not verified'}
+                  </Text>
                 )}
                 <Icon name="chevron" size={16} color={colors.quaternary} />
               </Pressable>

@@ -81,3 +81,23 @@ export async function changePassword(
 ): Promise<void> {
   await apiClient.patch('/auth/change-password', body, { signal: opts.signal });
 }
+
+export async function verifyEmail(
+  body: { token: string; type: 'signup' },
+  opts: RequestOptions = {},
+): Promise<{ success: boolean }> {
+  const { data } = await apiClient.post('/auth/verify-email', body, {
+    signal: opts.signal,
+  });
+  return z.object({ success: z.boolean() }).parse(data);
+}
+
+export async function resendVerification(
+  body: { email: string },
+  opts: RequestOptions = {},
+): Promise<{ success: boolean }> {
+  const { data } = await apiClient.post('/auth/resend-verification', body, {
+    signal: opts.signal,
+  });
+  return z.object({ success: z.boolean() }).parse(data);
+}

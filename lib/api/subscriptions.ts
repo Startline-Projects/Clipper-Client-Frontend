@@ -114,6 +114,17 @@ export async function replacePaymentMethod(
   return CardActionResponseSchema.parse(data);
 }
 
+export async function reactivateSubscription(
+  opts: RequestOptions = {},
+): Promise<SubscriptionState> {
+  const { data } = await apiClient.post(
+    '/subscriptions/me/reactivate',
+    undefined,
+    { signal: opts.signal },
+  );
+  return SubscriptionStateSchema.parse(data);
+}
+
 export async function removePaymentMethod(
   opts: RequestOptions = {},
 ): Promise<CardActionResponse> {

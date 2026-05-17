@@ -44,6 +44,8 @@ export const NotificationType = z.enum([
   'subscription_cancel_scheduled',
   'subscription_cancelled',
   'subscription_past_due',
+  'no_show_recorded',
+  'no_show_resolved',
 ]);
 
 export const RecurringArrangementStatus = z.enum([

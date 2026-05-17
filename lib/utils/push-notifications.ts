@@ -99,6 +99,10 @@ function resolveTapTarget(
     return '/(app)/(tabs)/profile/subscription';
   }
 
+  if (data.type === 'no_show_recorded' || data.type === 'no_show_resolved') {
+    return '/(app)/(tabs)/profile/no-shows';
+  }
+
   if (data.bookingId) {
     return `/(app)/(tabs)/bookings/${data.bookingId}`;
   }

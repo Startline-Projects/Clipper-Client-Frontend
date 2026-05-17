@@ -1,14 +1,40 @@
 import { z } from 'zod';
 import { apiClient } from './client';
 
+// Canonical lifecycle states the API can return. Legacy aliases
+// 'pending_payment' and 'failed' are kept so historic rows still parse;
+// new code should treat them as 'processing' / 'payment_failed'.
 export const NoShowStatus = z.enum([
   'unresolved',
-  'pending_payment',
+  'payment_intent_created',
+  'requires_action',
+  'processing',
   'paid',
-  'failed',
+  'payment_failed',
+  'canceled',
   'refunded',
+  'reconciliation_required',
+  // Legacy
+  'pending_payment',
+  'failed',
 ]);
 export type NoShowStatus = z.infer<typeof NoShowStatus>;
+
+export const IN_FLIGHT_NO_SHOW_STATUSES: NoShowStatus[] = [
+  'payment_intent_created',
+  'requires_action',
+  'processing',
+  'pending_payment',
+];
+
+export const TERMINAL_NO_SHOW_STATUSES: NoShowStatus[] = ['paid', 'refunded', 'canceled'];
+
+export const OWING_NO_SHOW_STATUSES: NoShowStatus[] = [
+  'unresolved',
+  'payment_failed',
+  'failed',
+  'reconciliation_required',
+];
 
 const NoShowBookingSchema = z.object({
   id: z.string(),
@@ -52,13 +78,24 @@ const PayNoShowResponseSchema = z.object({
   paymentIntentId: z.string(),
   clientSecret: z.string(),
   status: NoShowStatus,
+  stripePaymentIntentStatus: z.string().optional(),
+  idempotencyKey: z.string().optional(),
   amountUsd: z.number(),
   currency: z.string(),
+});
+
+const ReconcileNoShowResponseSchema = z.object({
+  noShowId: z.string(),
+  status: NoShowStatus,
+  stripePaymentIntentStatus: z.string().nullable(),
+  changed: z.boolean(),
+  reconciledAt: z.string(),
 });
 
 export type NoShowItem = z.infer<typeof NoShowItemSchema>;
 export type NoShowsListResponse = z.infer<typeof NoShowsListResponseSchema>;
 export type PayNoShowResponse = z.infer<typeof PayNoShowResponseSchema>;
+export type ReconcileNoShowResponse = z.infer<typeof ReconcileNoShowResponseSchema>;
 
 export interface ListNoShowsParams {
   status?: NoShowStatus;
@@ -91,4 +128,16 @@ export async function payNoShow(
     { signal: opts.signal },
   );
   return PayNoShowResponseSchema.parse(data);
+}
+
+export async function reconcileNoShow(
+  noShowId: string,
+  opts: RequestOptions = {},
+): Promise<ReconcileNoShowResponse> {
+  const { data } = await apiClient.post(
+    `/client/no-shows/${noShowId}/reconcile`,
+    {},
+    { signal: opts.signal },
+  );
+  return ReconcileNoShowResponseSchema.parse(data);
 }

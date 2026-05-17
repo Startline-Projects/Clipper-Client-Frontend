@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
 import { WebView, type WebViewMessageEvent, type ShouldStartLoadRequest } from 'react-native-webview';
 import { useColors } from '@/lib/theme/colors';
+import type { SavedCard } from '@/lib/stores/payment-method';
 
 const STRIPE_PK = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '';
 
@@ -18,6 +19,14 @@ interface StripePaymentIntentSheetProps {
   onSuccess: (result: PaymentResult) => void;
   onCancel: () => void;
   onError?: (message: string) => void;
+  // Fires when Stripe begins a 3DS / SCA flow inside the sheet. Parent
+  // can use this to e.g. keep a busy spinner up while the issuer ACS
+  // page loads.
+  onRequiresAction?: () => void;
+  // Optional saved payment method. When present, the sheet pre-selects
+  // it and the user can pay in one tap without re-entering card details.
+  // They can still switch to "use a different card".
+  savedCard?: SavedCard | null;
 }
 
 function buildHTML(
@@ -26,6 +35,7 @@ function buildHTML(
   amountUsd: number,
   description: string,
   colors: Record<string, string>,
+  savedCard: SavedCard | null,
 ) {
   const s = (v: string | number) => JSON.stringify(v);
 
@@ -146,12 +156,32 @@ function buildHTML(
     <div class="amount-desc">${description}</div>
   </div>
 
-  <h2>Pay with card</h2>
-  <p class="subtitle">Enter your card details to settle this no-show.</p>
-  <label>Card Details</label>
-  <div id="card-element"></div>
-  <div id="card-errors" role="alert"></div>
-  <button id="submit-btn" class="btn" disabled>Pay $${amountUsd.toFixed(2)}</button>
+  ${
+    savedCard
+      ? `
+  <div id="saved-card-section">
+    <h2>Pay with saved card</h2>
+    <p class="subtitle">Use the card on file or enter a new one.</p>
+    <div style="background:${s(colors.surface)};border:1.5px solid ${s(colors.brand)};border-radius:16px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="color:${s(colors.ink)};font-size:15px;font-weight:600;">
+        ${savedCard.brand.charAt(0).toUpperCase() + savedCard.brand.slice(1)} •••• ${savedCard.last4}
+      </div>
+      <div style="color:${s(colors.secondary)};font-size:12px;">Saved</div>
+    </div>
+    <button id="pay-saved-btn" class="btn">Pay $${amountUsd.toFixed(2)} with saved card</button>
+    <button id="use-new-btn" class="btn-cancel">Use a different card</button>
+  </div>
+  `
+      : ''
+  }
+  <div id="new-card-section" style="${savedCard ? 'display:none;' : ''}">
+    <h2>Pay with card</h2>
+    <p class="subtitle">Enter your card details to settle this no-show.</p>
+    <label>Card Details</label>
+    <div id="card-element"></div>
+    <div id="card-errors" role="alert"></div>
+    <button id="submit-btn" class="btn" disabled>Pay $${amountUsd.toFixed(2)}</button>
+  </div>
   <button id="cancel-btn" class="btn-cancel">Cancel</button>
   <p class="secure-note">Securely processed by Stripe. We never store your full card details.</p>
 
@@ -175,6 +205,65 @@ function buildHTML(
     var cardErrors = document.getElementById('card-errors');
     var cardComplete = false;
     var clientSecret = ${s(clientSecret)};
+    var savedPaymentMethodId = ${s(savedCard?.paymentMethodId ?? '')};
+
+    function handleConfirmResult(result) {
+      clearTimeout(actionAdviser);
+      if (result.error) {
+        cardErrors.textContent = result.error.message;
+        submitBtn.disabled = false;
+        cancelBtn.disabled = false;
+        submitBtn.textContent = 'Pay $${amountUsd.toFixed(2)}';
+        var savedBtn = document.getElementById('pay-saved-btn');
+        if (savedBtn) { savedBtn.disabled = false; savedBtn.textContent = 'Pay $${amountUsd.toFixed(2)} with saved card'; }
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'error',
+          message: result.error.message,
+          code: result.error.code || null
+        }));
+      } else {
+        var pi = result.paymentIntent;
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'success',
+          paymentIntentId: pi.id,
+          status: pi.status
+        }));
+      }
+    }
+
+    var advisedAction = false;
+    var actionAdviser = null;
+    function startActionAdviser() {
+      advisedAction = false;
+      actionAdviser = setTimeout(function() {
+        if (!advisedAction) {
+          advisedAction = true;
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'requires_action' }));
+        }
+      }, 1500);
+    }
+
+    var savedBtn = document.getElementById('pay-saved-btn');
+    var useNewBtn = document.getElementById('use-new-btn');
+    if (savedBtn) {
+      savedBtn.addEventListener('click', function() {
+        savedBtn.disabled = true;
+        cancelBtn.disabled = true;
+        savedBtn.textContent = 'Processing...';
+        startActionAdviser();
+        stripe.confirmCardPayment(clientSecret, {
+          payment_method: savedPaymentMethodId
+        }).then(handleConfirmResult).catch(function(err) {
+          handleConfirmResult({ error: { message: (err && err.message) || 'Payment confirmation failed' } });
+        });
+      });
+    }
+    if (useNewBtn) {
+      useNewBtn.addEventListener('click', function() {
+        document.getElementById('saved-card-section').style.display = 'none';
+        document.getElementById('new-card-section').style.display = 'block';
+      });
+    }
 
     card.on('change', function(event) {
       cardComplete = event.complete;
@@ -187,27 +276,11 @@ function buildHTML(
       submitBtn.disabled = true;
       cancelBtn.disabled = true;
       submitBtn.textContent = 'Processing...';
-
+      startActionAdviser();
       stripe.confirmCardPayment(clientSecret, {
         payment_method: { card: card }
-      }).then(function(result) {
-        if (result.error) {
-          cardErrors.textContent = result.error.message;
-          submitBtn.disabled = false;
-          cancelBtn.disabled = false;
-          submitBtn.textContent = 'Pay $${amountUsd.toFixed(2)}';
-          window.ReactNativeWebView.postMessage(JSON.stringify({
-            type: 'error',
-            message: result.error.message
-          }));
-        } else {
-          var pi = result.paymentIntent;
-          window.ReactNativeWebView.postMessage(JSON.stringify({
-            type: 'success',
-            paymentIntentId: pi.id,
-            status: pi.status
-          }));
-        }
+      }).then(handleConfirmResult).catch(function(err) {
+        handleConfirmResult({ error: { message: (err && err.message) || 'Payment confirmation failed' } });
       });
     });
 
@@ -227,6 +300,8 @@ export default function StripePaymentIntentSheet({
   onSuccess,
   onCancel,
   onError,
+  onRequiresAction,
+  savedCard = null,
 }: StripePaymentIntentSheetProps) {
   const colors = useColors();
   const [loading, setLoading] = useState(true);
@@ -241,6 +316,8 @@ export default function StripePaymentIntentSheet({
           onSuccess({ paymentIntentId: data.paymentIntentId, status: data.status });
         } else if (data.type === 'cancel') {
           onCancel();
+        } else if (data.type === 'requires_action') {
+          onRequiresAction?.();
         } else if (data.type === 'error') {
           onError?.(data.message ?? 'Payment failed');
         }
@@ -264,13 +341,16 @@ export default function StripePaymentIntentSheet({
 
   const html =
     clientSecret != null
-      ? buildHTML(STRIPE_PK, clientSecret, amountUsd, description, colorMap)
+      ? buildHTML(STRIPE_PK, clientSecret, amountUsd, description, colorMap, savedCard)
       : '';
 
+  // CRITICAL for 3DS / SCA: issuer ACS pages live on bank-controlled
+  // HTTPS domains (e.g. acs.chase.com, secure5.arcot.com, *.cardinal-
+  // commerce.com). Blocking those navigations hangs confirmCardPayment
+  // forever. Allow any https origin; block http and custom schemes.
   const handleShouldStartLoad = useCallback((request: ShouldStartLoadRequest) => {
     if (request.url === 'about:blank' || request.url.startsWith('data:')) return true;
-    if (request.url.startsWith('https://js.stripe.com')) return true;
-    if (request.url.startsWith('https://hooks.stripe.com')) return true;
+    if (request.url.startsWith('https://')) return true;
     return false;
   }, []);
 
@@ -336,7 +416,7 @@ export default function StripePaymentIntentSheet({
           <WebView
             ref={webViewRef}
             source={{ html }}
-            originWhitelist={['https://js.stripe.com', 'https://hooks.stripe.com']}
+            originWhitelist={['https://*']}
             onShouldStartLoadWithRequest={handleShouldStartLoad}
             onMessage={handleMessage}
             onLoadEnd={() => setLoading(false)}

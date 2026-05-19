@@ -10,6 +10,7 @@ export interface MappedError {
   isTimeout: boolean;
   isAuth: boolean;
   isSubscriptionRequired: boolean;
+  isEmailNotVerified: boolean;
 }
 
 export function isApiError(err: unknown): err is ApiError {
@@ -27,6 +28,7 @@ export function mapApiError(err: unknown): MappedError {
     isTimeout: false,
     isAuth: false,
     isSubscriptionRequired: false,
+    isEmailNotVerified: false,
   };
 
   if (!isApiError(err)) return base;
@@ -71,6 +73,11 @@ export function mapApiError(err: unknown): MappedError {
       case 'ACTIVE_RECURRING':
         base.title = 'Active series exists';
         base.message = 'Cancel your current recurring booking first';
+        return base;
+      case 'EMAIL_NOT_VERIFIED_EXCEPTION':
+        base.title = 'Email not verified';
+        base.message = 'Please verify your email address to continue';
+        base.isEmailNotVerified = true;
         return base;
     }
   }

@@ -12,7 +12,8 @@ import { useBarberDetail } from '@/lib/hooks/useBarbers';
 import { useBookingFlowStore } from '@/lib/stores/booking-flow';
 import { useLocation } from '@/lib/hooks/useLocation';
 import { useColors } from '@/lib/theme/colors';
-import { showErrorToast } from '@/lib/feedback/toast';
+import { showErrorToast, showToast } from '@/lib/feedback/toast';
+import { mapApiError } from '@/lib/api/error-map';
 import {
   formatCurrency,
   formatDate,
@@ -53,7 +54,11 @@ export default function PreviewScreen() {
         });
       },
       onError: (err: any) => {
-        if (err?.status === 409) {
+        const mapped = mapApiError(err);
+        if (mapped.isEmailNotVerified) {
+          showToast({ variant: 'info', title: mapped.title, message: mapped.message });
+          router.push('/(app)/verify-email');
+        } else if (err?.status === 409) {
           showErrorToast(null, 'Someone just booked this slot — pick another time.');
         } else {
           showErrorToast(err, 'Booking failed. Please try again.');

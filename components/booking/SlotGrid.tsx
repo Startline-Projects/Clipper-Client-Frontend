@@ -38,7 +38,7 @@ export default function SlotGrid({
   if (slots.length === 0) return null;
 
   return (
-    <View className="flex-row flex-wrap gap-[8px]">
+    <View className="flex-row flex-wrap gap-[8px] justify-center">
       {slots.map((slot) => {
         const isSelected = slot.time === selectedSlot;
         const isAvailable = slot.available;

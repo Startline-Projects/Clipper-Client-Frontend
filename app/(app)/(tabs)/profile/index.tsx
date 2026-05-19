@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Avatar from '@/components/ui/Avatar';
@@ -15,7 +14,6 @@ import { formatCurrency } from '@/lib/utils/format';
 import { useAuthStore, useIsAuthenticated } from '@/lib/stores/auth.store';
 import { useColors } from '@/lib/theme/colors';
 import { confirm } from '@/lib/feedback/confirm';
-import { resendVerification } from '@/lib/api/auth';
 import EmailVerificationBanner from '@/components/feedback/EmailVerificationBanner';
 
 const MENU_ROWS = [
@@ -24,6 +22,7 @@ const MENU_ROWS = [
   { key: 'payment', icon: 'card' as const, label: 'Payment Method' },
   { key: 'noShows', icon: 'alert' as const, label: 'No-Show Payments' },
   { key: 'verifyEmail', icon: 'shield' as const, label: 'Verify Email' },
+  { key: 'changeEmail', icon: 'user' as const, label: 'Change Email' },
   { key: 'password', icon: 'shield' as const, label: 'Change Password' },
 ] as const;
 
@@ -36,39 +35,12 @@ export default function ProfileScreen() {
   const { data: profile, isLoading, isError, error, refetch, isRefetching } = useProfile();
   const { data: noShows } = useClientNoShows();
   const logout = useLogout();
-  const email = useAuthStore((s) => s.email);
   const emailVerified = useAuthStore((s) => s.emailVerified);
-  const [resending, setResending] = useState(false);
 
   const owedNoShows = (noShows?.items ?? []).filter((i) => OWING_STATUSES.has(i.status));
   const owedCount = owedNoShows.length;
   const owedAmount = owedNoShows.reduce((s, i) => s + i.amountUsd, 0);
   const hasBlocked = owedCount >= 3;
-
-  const handleVerifyEmail = async () => {
-    if (emailVerified === true) {
-      Alert.alert('Email verified', 'Your email is already verified.');
-      return;
-    }
-    const target = email ?? profile?.email;
-    if (!target) {
-      Alert.alert('Missing email', 'No email on file for this account.');
-      return;
-    }
-    try {
-      setResending(true);
-      await resendVerification({ email: target });
-      Alert.alert(
-        'Verification email sent',
-        `We sent a verification link to ${target}. Tap it to verify your address.`,
-      );
-    } catch (e) {
-      const msg = (e as Error)?.message ?? 'Please try again.';
-      Alert.alert('Could not send', msg);
-    } finally {
-      setResending(false);
-    }
-  };
 
   const handleMenuPress = (key: string) => {
     switch (key) {
@@ -85,7 +57,10 @@ export default function ProfileScreen() {
         router.push('/(app)/(tabs)/profile/no-shows');
         break;
       case 'verifyEmail':
-        void handleVerifyEmail();
+        router.push('/(app)/verify-email');
+        break;
+      case 'changeEmail':
+        router.push('/(app)/(tabs)/profile/change-email');
         break;
       case 'password':
         router.push('/(app)/(tabs)/profile/change-password');
@@ -176,12 +151,11 @@ export default function ProfileScreen() {
             const isVerify = row.key === 'verifyEmail';
             const showBadge = isNoShows && owedCount > 0;
             const verified = isVerify && emailVerified === true;
-            const verifyPending = isVerify && resending;
+            const verifyNeedsAction = isVerify && emailVerified === false;
             return (
               <Pressable
                 key={row.key}
                 onPress={() => handleMenuPress(row.key)}
-                disabled={verifyPending}
                 className={`flex-row items-center gap-3 px-4 py-[14px] active:opacity-70 ${
                   i < MENU_ROWS.length - 1
                     ? 'border-b-[0.5px] border-separator'
@@ -193,7 +167,9 @@ export default function ProfileScreen() {
                 <Icon
                   name={row.icon}
                   size={18}
-                  color={showBadge ? colors.red : colors.secondary}
+                  color={
+                    showBadge || verifyNeedsAction ? colors.red : colors.secondary
+                  }
                 />
                 <Text className="flex-1 text-[15px] font-medium text-ink tracking-[-0.2px]">
                   {row.label}
@@ -209,9 +185,9 @@ export default function ProfileScreen() {
                 {isVerify && (
                   <Text
                     className="text-[12px] font-semibold mr-1"
-                    style={{ color: verified ? colors.secondary : colors.tertiary }}
+                    style={{ color: verified ? colors.secondary : colors.red }}
                   >
-                    {verifyPending ? 'Sending…' : verified ? 'Verified' : 'Not verified'}
+                    {verified ? 'Verified' : 'Not verified'}
                   </Text>
                 )}
                 <Icon name="chevron" size={16} color={colors.quaternary} />

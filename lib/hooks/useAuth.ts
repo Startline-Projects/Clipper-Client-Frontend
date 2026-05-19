@@ -71,7 +71,7 @@ export function useForgotPassword() {
 export function useResetPassword() {
   return useMutation({
     meta: { silent: true },
-    mutationFn: (body: { token: string; newPassword: string }) =>
+    mutationFn: (body: { email: string; code: string; newPassword: string }) =>
       authApi.resetPassword(body),
   });
 }
@@ -81,5 +81,18 @@ export function useChangePassword() {
     meta: { silent: true },
     mutationFn: (body: { currentPassword: string; newPassword: string }) =>
       authApi.changePassword(body),
+  });
+}
+
+export function useChangeEmail() {
+  return useMutation({
+    meta: { silent: true },
+    mutationFn: (body: { currentPassword: string; newEmail: string }) =>
+      authApi.changeEmail(body),
+    onSuccess: async (_data, vars) => {
+      const { setEmail, setEmailVerified } = useAuthStore.getState();
+      await setEmail(vars.newEmail);
+      await setEmailVerified(false);
+    },
   });
 }

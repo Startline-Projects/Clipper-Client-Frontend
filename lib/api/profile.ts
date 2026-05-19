@@ -25,6 +25,7 @@ const ClientProfileSchema = z.object({
   username: z.string().nullable(),
   profilePhotoUrl: z.string().nullable(),
   email: z.string().nullable(),
+  emailVerified: z.boolean().default(false),
   subscriptionStatus: z.enum(['inactive', 'active', 'past_due', 'cancelled']),
   subscriptionExpiresAt: z.string().nullable(),
   createdAt: z.string(),

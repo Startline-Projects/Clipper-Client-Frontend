@@ -14,7 +14,6 @@ import { queryClient } from '@/lib/utils/query-client';
 import { useAuthStore } from '@/lib/stores/auth.store';
 import { useTheme } from '@/lib/hooks/useTheme';
 import { useThemeHasHydrated } from '@/lib/stores/theme';
-import { useEmailVerifyDeepLink } from '@/lib/hooks/useEmailVerifyDeepLink';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -26,6 +25,7 @@ function AuthRedirect() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const hasLaunched = useAuthStore((s) => s.hasLaunched);
   const isHydrated = useAuthStore((s) => s.isHydrated);
+  const emailVerified = useAuthStore((s) => s.emailVerified);
 
   useEffect(() => {
     if (!isHydrated) return;
@@ -35,9 +35,15 @@ function AuthRedirect() {
     if (!accessToken && !inAuth) {
       router.replace(hasLaunched ? '/(auth)/login' : '/(auth)/welcome');
     } else if (accessToken && inAuth) {
-      router.replace('/(app)/(tabs)/explore');
+      // Fresh signup sets emailVerified = false explicitly. Route those users
+      // straight to the OTP screen so they don't have to hunt for it.
+      router.replace(
+        emailVerified === false
+          ? '/(app)/verify-email'
+          : '/(app)/(tabs)/explore'
+      );
     }
-  }, [accessToken, hasLaunched, isHydrated, segments]);
+  }, [accessToken, hasLaunched, isHydrated, segments, emailVerified]);
 
   return null;
 }
@@ -84,7 +90,6 @@ const darkVars = vars({
 
 function RootInner() {
   const theme = useTheme();
-  useEmailVerifyDeepLink();
 
   return (
     <View style={[{ flex: 1 }, theme === 'dark' ? darkVars : lightVars]}>

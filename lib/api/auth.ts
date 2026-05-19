@@ -69,7 +69,7 @@ export async function forgotPassword(
 }
 
 export async function resetPassword(
-  body: { token: string; newPassword: string },
+  body: { email: string; code: string; newPassword: string },
   opts: RequestOptions = {},
 ): Promise<void> {
   await apiClient.post('/auth/reset-password', body, { signal: opts.signal });
@@ -82,8 +82,18 @@ export async function changePassword(
   await apiClient.patch('/auth/change-password', body, { signal: opts.signal });
 }
 
+export async function changeEmail(
+  body: { currentPassword: string; newEmail: string },
+  opts: RequestOptions = {},
+): Promise<{ success: boolean }> {
+  const { data } = await apiClient.patch('/auth/change-email', body, {
+    signal: opts.signal,
+  });
+  return z.object({ success: z.boolean() }).parse(data);
+}
+
 export async function verifyEmail(
-  body: { token: string; type: 'signup' },
+  body: { email: string; code: string },
   opts: RequestOptions = {},
 ): Promise<{ success: boolean }> {
   const { data } = await apiClient.post('/auth/verify-email', body, {

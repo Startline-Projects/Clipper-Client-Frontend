@@ -93,8 +93,8 @@ export default function ForgotPasswordScreen() {
           {!sent ? (
             <>
               <Text className="text-[14px] text-secondary leading-[20px] tracking-[-0.1px] mt-1 mb-6">
-                Enter the email you signed up with. We'll send a link to reset
-                your password.
+                Enter the email you signed up with. We'll send a 6-digit code
+                to reset your password.
               </Text>
 
               <View className="mb-6">
@@ -118,7 +118,7 @@ export default function ForgotPasswordScreen() {
               </View>
 
               <Btn
-                label={forgot.isPending ? 'Sending...' : 'Send reset link'}
+                label={forgot.isPending ? 'Sending...' : 'Send reset code'}
                 full
                 onPress={handleSubmit}
                 disabled={!email.trim() || forgot.isPending}
@@ -134,18 +134,29 @@ export default function ForgotPasswordScreen() {
               </Text>
               <Text className="text-[14px] text-secondary text-center leading-[20px] tracking-[-0.1px] mb-8 px-4">
                 If an account exists for {email.trim().toLowerCase()}, we sent a
-                password reset link. Check your inbox and spam folder.
+                6-digit code. Check your inbox and spam folder.
               </Text>
 
               <Btn
-                label={
-                  cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend link'
-                }
-                variant="secondary"
+                label="Enter code"
                 full
-                onPress={handleSubmit}
-                disabled={cooldown > 0 || forgot.isPending}
+                onPress={() =>
+                  router.replace({
+                    pathname: '/(auth)/reset-password',
+                    params: { email: email.trim().toLowerCase() },
+                  })
+                }
               />
+
+              <View className="mt-3">
+                <Btn
+                  label={cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend code'}
+                  variant="secondary"
+                  full
+                  onPress={handleSubmit}
+                  disabled={cooldown > 0 || forgot.isPending}
+                />
+              </View>
 
               <View className="mt-4">
                 <Btn

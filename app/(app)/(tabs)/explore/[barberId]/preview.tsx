@@ -12,8 +12,9 @@ import { useBarberDetail } from '@/lib/hooks/useBarbers';
 import { useBookingFlowStore } from '@/lib/stores/booking-flow';
 import { useLocation } from '@/lib/hooks/useLocation';
 import { useColors } from '@/lib/theme/colors';
-import { showErrorToast, showToast } from '@/lib/feedback/toast';
+import { showErrorToast } from '@/lib/feedback/toast';
 import { mapApiError } from '@/lib/api/error-map';
+import { confirm } from '@/lib/feedback/confirm';
 import {
   formatCurrency,
   formatDate,
@@ -53,11 +54,20 @@ export default function PreviewScreen() {
           params: { barberId, bookingId: res.booking.id },
         });
       },
-      onError: (err: any) => {
+      onError: async (err: any) => {
         const mapped = mapApiError(err);
         if (mapped.isEmailNotVerified) {
-          showToast({ variant: 'info', title: mapped.title, message: mapped.message });
-          router.push('/(app)/verify-email');
+          const yes = await confirm({
+            title: 'Verify your email first',
+            message:
+              "We can't confirm a booking until your email is verified. Want to do that now?",
+            confirmLabel: 'Verify now',
+            cancelLabel: 'Later',
+          });
+          if (yes) {
+            router.push('/(app)/(tabs)/profile');
+            router.push('/(app)/verify-email');
+          }
         } else if (err?.status === 409) {
           showErrorToast(null, 'Someone just booked this slot — pick another time.');
         } else {

@@ -16,12 +16,20 @@ export function useProfile() {
   });
 
   useEffect(() => {
-    if (result.data && !useAuthStore.getState().user) {
-      useAuthStore.getState().setUser({
+    if (!result.data) return;
+    const store = useAuthStore.getState();
+    if (!store.user) {
+      store.setUser({
         id: result.data.id,
         email: result.data.email ?? '',
         username: result.data.username ?? result.data.name,
       });
+    }
+    if (result.data.email && store.email !== result.data.email) {
+      void store.setEmail(result.data.email);
+    }
+    if (store.emailVerified !== result.data.emailVerified) {
+      void store.setEmailVerified(result.data.emailVerified);
     }
   }, [result.data]);
 

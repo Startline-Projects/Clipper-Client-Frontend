@@ -88,7 +88,7 @@ export default function EmailVerificationBanner({ className }: Props) {
           Confirm your email
         </Text>
         <Text className="text-[12px] text-secondary mt-[2px] tracking-[-0.1px]">
-          We sent a link to {email}. Tap it to verify your account.
+          We sent a 6-digit code to {email}. Tap to enter it now.
         </Text>
         <Pressable
           onPress={handleResend}

@@ -13,69 +13,80 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
 import Btn from '@/components/ui/Btn';
 import TextField from '@/components/forms/TextField';
-import ErrorView from '@/components/feedback/ErrorView';
 import SuccessView from '@/components/feedback/SuccessView';
-import { useColors } from '@/lib/theme/colors';
 import { useResetPassword } from '@/lib/hooks/useAuth';
 import { confirm as showConfirmDialog } from '@/lib/feedback/confirm';
 
 const MIN_PASSWORD_LENGTH = 8;
+const CODE_LEN = 6;
+const CODE_RE = /^\d{6}$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
-  const colors = useColors();
-  const { token } = useLocalSearchParams<{ token: string }>();
+  const { email: emailParam } = useLocalSearchParams<{ email?: string }>();
   const reset = useResetPassword();
 
+  const [email, setEmail] = useState(emailParam ?? '');
+  const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
+  const [confirmPwd, setConfirmPwd] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [errors, setErrors] = useState<{
+    email?: string;
+    code?: string;
     password?: string;
-    confirm?: string;
+    confirmPwd?: string;
   }>({});
   const [success, setSuccess] = useState(false);
-  const confirmRef = useRef<TextInput>(null);
 
-  if (!token) {
-    return (
-      <ErrorView
-        title="Invalid reset link"
-        message="This link is invalid or has expired. Please request a new password reset."
-        icon="shield"
-        primaryCta={{ label: 'Request new link', onPress: () => router.replace('/(auth)/forgot-password') }}
-      />
-    );
-  }
+  const codeRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
+  const confirmRef = useRef<TextInput>(null);
 
   const validate = () => {
     const e: typeof errors = {};
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedCode = code.trim();
+    if (!trimmedEmail) e.email = 'Email is required';
+    else if (!EMAIL_RE.test(trimmedEmail))
+      e.email = 'Enter a valid email address';
+    if (!trimmedCode) e.code = 'Code is required';
+    else if (!CODE_RE.test(trimmedCode)) e.code = 'Enter the 6-digit code';
     if (!password) e.password = 'Password is required';
     else if (password.length < MIN_PASSWORD_LENGTH)
       e.password = `Must be at least ${MIN_PASSWORD_LENGTH} characters`;
-    if (!confirm) e.confirm = 'Please confirm your password';
-    else if (confirm !== password) e.confirm = 'Passwords do not match';
+    if (!confirmPwd) e.confirmPwd = 'Please confirm your password';
+    else if (confirmPwd !== password) e.confirmPwd = 'Passwords do not match';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const canSubmit =
-    password.length >= MIN_PASSWORD_LENGTH && confirm.length > 0;
+    email.trim().length > 0 &&
+    code.trim().length === CODE_LEN &&
+    password.length >= MIN_PASSWORD_LENGTH &&
+    confirmPwd.length > 0;
 
   const handleReset = () => {
     if (reset.isPending) return;
     if (!validate()) return;
     reset.mutate(
-      { token, newPassword: password },
+      {
+        email: email.trim().toLowerCase(),
+        code: code.trim(),
+        newPassword: password,
+      },
       {
         onSuccess: () => setSuccess(true),
         onError: async () => {
           const yes = await showConfirmDialog({
             title: 'Reset failed',
-            message: 'This link may have expired or already been used.',
-            confirmLabel: 'Request new link',
-            cancelLabel: 'Cancel',
+            message:
+              'The code may have expired or is incorrect. Request a new one?',
+            confirmLabel: 'Request new code',
+            cancelLabel: 'Try again',
           });
           if (yes) router.replace('/(auth)/forgot-password');
         },
@@ -88,7 +99,10 @@ export default function ResetPasswordScreen() {
       <SuccessView
         title="Password updated"
         message="Your password has been changed. Log in with your new password."
-        primaryCta={{ label: 'Back to login', onPress: () => router.replace('/(auth)/login') }}
+        primaryCta={{
+          label: 'Back to login',
+          onPress: () => router.replace('/(auth)/login'),
+        }}
       />
     );
   }
@@ -106,13 +120,59 @@ export default function ResetPasswordScreen() {
           <Header title="New password" onBack={() => router.back()} />
 
           <Text className="text-[14px] text-secondary leading-[20px] tracking-[-0.1px] mt-1 mb-6">
-            Choose a new password. Must be at least {MIN_PASSWORD_LENGTH}{' '}
-            characters.
+            Enter the 6-digit code we sent to your email and choose a new
+            password.
           </Text>
 
           <View className="mb-4">
             <TextField
-              label="New Password"
+              label="Email"
+              value={email}
+              onChangeText={(t) => {
+                setEmail(t);
+                if (errors.email)
+                  setErrors((e) => ({ ...e, email: undefined }));
+              }}
+              placeholder="john@example.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="email"
+              textContentType="emailAddress"
+              returnKeyType="next"
+              onSubmitEditing={() => codeRef.current?.focus()}
+              blurOnSubmit={false}
+              error={errors.email}
+            />
+          </View>
+
+          <View className="mb-4">
+            <TextField
+              ref={codeRef}
+              label="Verification code"
+              value={code}
+              onChangeText={(t) => {
+                const digits = t.replace(/\D/g, '').slice(0, CODE_LEN);
+                setCode(digits);
+                if (errors.code)
+                  setErrors((e) => ({ ...e, code: undefined }));
+              }}
+              placeholder="123456"
+              keyboardType="number-pad"
+              autoComplete="one-time-code"
+              textContentType="oneTimeCode"
+              maxLength={CODE_LEN}
+              returnKeyType="next"
+              onSubmitEditing={() => passwordRef.current?.focus()}
+              blurOnSubmit={false}
+              error={errors.code}
+            />
+          </View>
+
+          <View className="mb-4">
+            <TextField
+              ref={passwordRef}
+              label="New password"
               value={password}
               onChangeText={(t) => {
                 setPassword(t);
@@ -148,12 +208,12 @@ export default function ResetPasswordScreen() {
           <View className="mb-6">
             <TextField
               ref={confirmRef}
-              label="Confirm Password"
-              value={confirm}
+              label="Confirm password"
+              value={confirmPwd}
               onChangeText={(t) => {
-                setConfirm(t);
-                if (errors.confirm)
-                  setErrors((e) => ({ ...e, confirm: undefined }));
+                setConfirmPwd(t);
+                if (errors.confirmPwd)
+                  setErrors((e) => ({ ...e, confirmPwd: undefined }));
               }}
               placeholder="Re-enter password"
               secureTextEntry={!showConfirm}
@@ -163,7 +223,7 @@ export default function ResetPasswordScreen() {
               textContentType="newPassword"
               returnKeyType="go"
               onSubmitEditing={handleReset}
-              error={errors.confirm}
+              error={errors.confirmPwd}
               right={
                 <Pressable
                   onPress={() => setShowConfirm((p) => !p)}

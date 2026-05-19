@@ -88,7 +88,8 @@ function buildHTML(publishableKey: string, theme: 'light' | 'dark', colors: Reco
       -webkit-appearance: none;
     }
     .btn:disabled {
-      opacity: 0.5;
+      background: ${s(colors.separatorOpaque)};
+      color: ${s(colors.tertiary)};
     }
     .btn-cancel {
       width: 100%;
@@ -219,7 +220,7 @@ export default function StripeCardSheet({ visible, onPaymentMethod, onCancel }: 
 
   const handleShouldStartLoad = useCallback((request: ShouldStartLoadRequest) => {
     if (request.url === 'about:blank' || request.url.startsWith('data:')) return true;
-    if (request.url.startsWith('https://js.stripe.com')) return true;
+    if (/^https:\/\/[a-z.]*stripe\.(com|network)(\/|$)/.test(request.url)) return true;
     return false;
   }, []);
 
@@ -285,7 +286,7 @@ export default function StripeCardSheet({ visible, onPaymentMethod, onCancel }: 
           <WebView
             ref={webViewRef}
             source={{ html }}
-            originWhitelist={['https://js.stripe.com']}
+            originWhitelist={['*']}
             onShouldStartLoadWithRequest={handleShouldStartLoad}
             onMessage={handleMessage}
             onLoadEnd={() => setLoading(false)}

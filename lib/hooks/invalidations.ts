@@ -38,6 +38,7 @@ export const invalidations = {
     qc.invalidateQueries({ queryKey: queryKeys.arrangements.lists() });
     qc.invalidateQueries({ queryKey: queryKeys.arrangements.pending() });
     qc.invalidateQueries({ queryKey: queryKeys.bookings.all });
+    qc.invalidateQueries({ queryKey: queryKeys.recurringBookings.all });
   },
 
   reviewCreated: (qc: QueryClient, bookingId: string) => {

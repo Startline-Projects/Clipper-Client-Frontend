@@ -16,6 +16,7 @@ import { useAuthStore, useIsAuthenticated } from '@/lib/stores/auth.store';
 import { useColors } from '@/lib/theme/colors';
 import { confirm } from '@/lib/feedback/confirm';
 import { resendVerification } from '@/lib/api/auth';
+import EmailVerificationBanner from '@/components/feedback/EmailVerificationBanner';
 
 const MENU_ROWS = [
   { key: 'edit', icon: 'user' as const, label: 'Edit Profile' },
@@ -111,6 +112,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={['top']}>
+      <EmailVerificationBanner />
       <ScrollView
         className="flex-1 px-5"
         contentContainerClassName="pb-8 pt-2"

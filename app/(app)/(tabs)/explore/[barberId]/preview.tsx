@@ -36,8 +36,9 @@ export default function PreviewScreen() {
   const reset = useBookingFlowStore((s) => s.reset);
 
   useEffect(() => {
-    if (!previewData && !confirmBooking.isPending) router.back();
-  }, [previewData, confirmBooking.isPending, router]);
+    if (!previewData && !confirmBooking.isPending && !confirmBooking.isSuccess)
+      router.back();
+  }, [previewData, confirmBooking.isPending, confirmBooking.isSuccess, router]);
 
   if (!previewData) return null;
 

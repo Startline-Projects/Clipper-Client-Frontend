@@ -14,6 +14,7 @@ import ErrorView from '@/components/feedback/ErrorView';
 import { BookingDetailSkeleton } from '@/components/feedback/SkeletonVariants';
 import { useBookingDetail, useCancelBooking } from '@/lib/hooks/useBookings';
 import { useBarberChat } from '@/lib/hooks/useBarberChat';
+import { useFiltersStore } from '@/lib/stores/filters';
 import { useColors } from '@/lib/theme/colors';
 import { confirm } from '@/lib/feedback/confirm';
 import { showSuccessToast } from '@/lib/feedback/toast';
@@ -56,7 +57,11 @@ export default function BookingDetailScreen() {
     if (!ok) return;
     setCancelling(true);
     cancel.mutate(booking.id, {
-      onSuccess: () => showSuccessToast('Booking cancelled'),
+      onSuccess: () => {
+        showSuccessToast('Booking cancelled');
+        useFiltersStore.getState().setBookingsTab('Past');
+        router.back();
+      },
       onSettled: () => setCancelling(false),
     });
   };

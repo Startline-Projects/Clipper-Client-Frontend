@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Linking, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,7 +15,9 @@ import ReviewsSummary from '@/components/explore/ReviewsSummary';
 import ReviewCard from '@/components/explore/ReviewCard';
 import { BarberDetailSkeleton } from '@/components/feedback/SkeletonVariants';
 import ErrorView from '@/components/feedback/ErrorView';
+import { useQueryClient } from '@tanstack/react-query';
 import { useBarberDetail } from '@/lib/hooks/useBarbers';
+import { queryKeys } from '@/lib/hooks/queryKeys';
 import { useBarberChat } from '@/lib/hooks/useBarberChat';
 import { useLocation } from '@/lib/hooks/useLocation';
 import { useSubscription } from '@/lib/hooks/useSubscription';
@@ -32,7 +35,12 @@ export default function BarberDetailScreen() {
     latitude !== null && longitude !== null
       ? { latitude, longitude }
       : null;
+  const qc = useQueryClient();
   const { data, isLoading, isError, error, refetch, isRefetching } = useBarberDetail(barberId, coords);
+
+  useEffect(() => {
+    qc.invalidateQueries({ queryKey: queryKeys.barbers.lists() });
+  }, [qc]);
 
   const barberName = data?.barber?.name ?? '';
   const { openChat, isPending: chatPending } = useBarberChat(barberId, barberName);

@@ -18,6 +18,8 @@ const NOTIFICATION_ICON: Record<string, IconName> = {
   recurring_accepted: 'repeat',
   recurring_refused: 'x',
   recurring_expiring: 'alert',
+  recurring_paused: 'pause',
+  recurring_resumed: 'repeat',
   new_message: 'chat',
 };
 

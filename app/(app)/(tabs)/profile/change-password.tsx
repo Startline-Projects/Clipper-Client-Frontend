@@ -38,8 +38,8 @@ export default function ChangePasswordScreen() {
           showSuccessToast('Password updated');
           router.back();
         },
-        onError: () =>
-          showErrorToast(null, 'Could not change password — double-check your current password.'),
+        onError: (err) =>
+          showErrorToast(err, 'Could not change password — double-check your current password.'),
       },
     );
   };

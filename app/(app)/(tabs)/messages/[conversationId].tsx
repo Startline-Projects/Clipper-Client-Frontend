@@ -12,11 +12,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/ui/Header';
 import Avatar from '@/components/ui/Avatar';
 import EmptyState from '@/components/feedback/EmptyState';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { useMessages, useSendMessage } from '@/lib/hooks/useMessages';
 import { useRealtimeMessages } from '@/lib/hooks/useRealtimeMessages';
 import { useConversations } from '@/lib/hooks/useConversations';
 import { queryKeys } from '@/lib/hooks/queryKeys';
+import type { ConversationListResponse } from '@/lib/api/conversations';
 import MessageBubble from '@/components/messaging/MessageBubble';
 import MessageInput from '@/components/messaging/MessageInput';
 import { useColors } from '@/lib/theme/colors';
@@ -56,6 +57,24 @@ export default function ChatScreen() {
   const send = useSendMessage(conversationId);
 
   useRealtimeMessages(conversationId);
+
+  useEffect(() => {
+    qc.setQueriesData<InfiniteData<ConversationListResponse>>(
+      { queryKey: queryKeys.conversations.lists() },
+      (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            conversations: page.conversations.map((c) =>
+              c.id === conversationId ? { ...c, unreadCount: 0 } : c,
+            ),
+          })),
+        };
+      },
+    );
+  }, [conversationId, qc]);
 
   const didInvalidate = useRef(false);
   useEffect(() => {

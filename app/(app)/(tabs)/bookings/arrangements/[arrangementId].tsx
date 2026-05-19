@@ -11,6 +11,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import LoadingSpinner from '@/components/feedback/LoadingSpinner';
 import TextArea from '@/components/forms/TextArea';
 import { confirm } from '@/lib/feedback/confirm';
+import { showSuccessToast } from '@/lib/feedback/toast';
 import {
   useArrangementDetail,
   useAcceptArrangement,
@@ -68,7 +69,13 @@ export default function ArrangementDetailScreen() {
       message: 'Accept this recurring arrangement from your barber?',
       confirmLabel: 'Accept',
     });
-    if (yes) accept.mutate(arrangement.id);
+    if (yes)
+      accept.mutate(arrangement.id, {
+        onSuccess: () => {
+          showSuccessToast('Arrangement accepted');
+          router.back();
+        },
+      });
   };
 
   const handleReject = () => {
@@ -76,10 +83,18 @@ export default function ArrangementDetailScreen() {
       setShowRejectInput(true);
       return;
     }
-    reject.mutate({
-      id: arrangement.id,
-      body: rejectReason.trim() ? { reason: rejectReason.trim() } : undefined,
-    });
+    reject.mutate(
+      {
+        id: arrangement.id,
+        body: rejectReason.trim() ? { reason: rejectReason.trim() } : undefined,
+      },
+      {
+        onSuccess: () => {
+          showSuccessToast('Arrangement declined');
+          router.back();
+        },
+      },
+    );
   };
 
   const frequencyLabel =

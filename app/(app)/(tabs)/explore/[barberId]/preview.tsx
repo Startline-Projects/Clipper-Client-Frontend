@@ -65,7 +65,8 @@ export default function PreviewScreen() {
             cancelLabel: 'Later',
           });
           if (yes) {
-            router.push('/(app)/(tabs)/profile');
+            // Push only the verify screen so back/return lands here on the
+            // booking the user was about to confirm, not the profile tab.
             router.push('/(app)/verify-email');
           }
         } else if (err?.status === 409) {

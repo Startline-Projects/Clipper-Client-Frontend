@@ -71,11 +71,11 @@ export default function ChangeEmailScreen() {
       {
         onSuccess: () => {
           showSuccessToast('Email updated. Check your inbox for the new code.');
-          if (router.canGoBack()) {
-            router.back();
-          } else {
-            router.replace('/(app)/(tabs)/profile');
-          }
+          // The new address is unverified and a code was just emailed to it,
+          // so send the user straight to the OTP screen. replace() drops this
+          // form from the stack, so "back" from there returns to the profile
+          // instead of this already-submitted form.
+          router.replace('/(app)/verify-email');
         },
         onError: (err: any) => {
           const msg: string = err?.message ?? '';

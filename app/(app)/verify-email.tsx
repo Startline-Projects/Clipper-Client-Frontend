@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -33,6 +33,17 @@ export default function VerifyEmailScreen() {
   const [resending, setResending] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const navigatedRef = useRef(false);
+
+  // Leave by returning to wherever the user came from. Falls back to the app
+  // home when there's nothing to go back to (e.g. we arrived here via replace()
+  // straight after signup), so the back button is never a dead end.
+  const leave = useCallback(() => {
+    if (navigatedRef.current) return;
+    navigatedRef.current = true;
+    if (router.canGoBack()) router.back();
+    else router.replace('/(app)/(tabs)/explore');
+  }, [router]);
 
   useEffect(() => {
     return () => {
@@ -41,10 +52,8 @@ export default function VerifyEmailScreen() {
   }, []);
 
   useEffect(() => {
-    if (emailVerified === true) {
-      router.replace('/(app)/(tabs)/profile');
-    }
-  }, [emailVerified, router]);
+    if (emailVerified === true) leave();
+  }, [emailVerified, leave]);
 
   const startCooldown = () => {
     setSecondsLeft(RESEND_COOLDOWN_S);
@@ -78,7 +87,7 @@ export default function VerifyEmailScreen() {
       await useAuthStore.getState().setEmailVerified(true);
       showSuccessToast('Email verified.');
       void refetchProfile();
-      router.replace('/(app)/(tabs)/profile');
+      leave();
     } catch (err) {
       setCode('');
       setCodeError('Invalid or expired code. Tap Resend to get a new one.');
@@ -121,7 +130,7 @@ export default function VerifyEmailScreen() {
           className="flex-1 px-5"
           keyboardShouldPersistTaps="handled"
         >
-          <Header title="Verify email" onBack={() => router.back()} />
+          <Header title="Verify email" onBack={leave} />
 
           <View className="items-center mt-2 mb-7">
             <View className="w-[72px] h-[72px] rounded-full bg-brand-pale items-center justify-center mb-5">

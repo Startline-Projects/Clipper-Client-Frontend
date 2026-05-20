@@ -141,6 +141,7 @@ export interface CreateRecurringBody {
   dayOfWeek: number;
   slotTime: string;
   frequency: 'weekly' | 'biweekly';
+  startDate?: string;
 }
 
 export interface PauseBody {
@@ -173,7 +174,7 @@ export async function getRecurringServices(
 
 export async function getRecurringSlots(
   barberId: string,
-  params: { serviceIds: string[]; dayOfWeek: number },
+  params: { serviceIds: string[]; dayOfWeek: number; startDate?: string },
   opts: RequestOptions = {},
 ): Promise<RecurringSlotsResponse> {
   const { data } = await apiClient.get(

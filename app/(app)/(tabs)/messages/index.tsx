@@ -49,8 +49,8 @@ export default function MessagesScreen() {
       isLast={index === conversations.length - 1}
       onPress={() =>
         router.push({
-          pathname: `/(app)/(tabs)/messages/${item.id}`,
-          params: { name: item.otherParty.name, photo: item.otherParty.profilePhotoUrl ?? '' },
+          pathname: '/(app)/(tabs)/messages/[conversationId]',
+          params: { conversationId: item.id, name: item.otherParty.name, photo: item.otherParty.profilePhotoUrl ?? '' },
         })
       }
     />

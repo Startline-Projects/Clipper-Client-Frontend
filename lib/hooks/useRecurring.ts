@@ -31,17 +31,19 @@ export function useRecurringSlots(
   barberId: string | undefined,
   serviceIds: string[],
   dayOfWeek: number | undefined,
+  startDate?: string,
 ) {
   return useQuery({
     queryKey: queryKeys.recurringSlots.forBarber(
       barberId!,
       serviceIds,
       dayOfWeek!,
+      startDate,
     ),
     queryFn: ({ signal }) =>
       recurringApi.getRecurringSlots(
         barberId!,
-        { serviceIds, dayOfWeek: dayOfWeek! },
+        { serviceIds, dayOfWeek: dayOfWeek!, startDate },
         { signal },
       ),
     enabled: !!barberId && serviceIds.length > 0 && dayOfWeek !== undefined,

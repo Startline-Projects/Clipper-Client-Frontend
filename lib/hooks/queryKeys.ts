@@ -106,12 +106,13 @@ export const queryKeys = {
 
   recurringSlots: {
     all: ['recurringSlots'] as const,
-    forBarber: (barberId: string, serviceIds: string[], dayOfWeek: number) =>
+    forBarber: (barberId: string, serviceIds: string[], dayOfWeek: number, startDate?: string) =>
       [
         ...queryKeys.recurringSlots.all,
         barberId,
         serviceIds.sort().join(','),
         dayOfWeek,
+        startDate,
       ] as const,
   },
 

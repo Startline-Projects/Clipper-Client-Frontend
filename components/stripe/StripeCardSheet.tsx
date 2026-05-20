@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
-import { WebView, type WebViewMessageEvent, type ShouldStartLoadRequest } from 'react-native-webview';
+import { WebView, type WebViewMessageEvent } from 'react-native-webview';
+import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
 import { useColors } from '@/lib/theme/colors';
 import { useTheme } from '@/lib/hooks/useTheme';
 

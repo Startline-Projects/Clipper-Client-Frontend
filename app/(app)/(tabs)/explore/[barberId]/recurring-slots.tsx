@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -36,13 +36,28 @@ export default function RecurringSlotsScreen() {
   const serviceIds = serviceIdsParam?.split(',').filter(Boolean) ?? [];
 
   const [dayOfWeek, setDayOfWeek] = useState<number | undefined>(undefined);
+  const [startDate, setStartDate] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [frequency, setFrequency] = useState<'weekly' | 'biweekly' | null>(null);
+
+  const upcomingDates = useMemo(() => {
+    if (dayOfWeek === undefined) return [];
+    const dates: { date: Date; dateStr: string }[] = [];
+    const d = new Date();
+    while (dates.length < 8) {
+      if (d.getDay() === dayOfWeek) {
+        dates.push({ date: new Date(d), dateStr: d.toISOString().slice(0, 10) });
+      }
+      d.setDate(d.getDate() + 1);
+    }
+    return dates;
+  }, [dayOfWeek]);
 
   const { data: slotData, isLoading: slotsLoading } = useRecurringSlots(
     barberId,
     serviceIds,
     dayOfWeek,
+    startDate ?? undefined,
   );
   const create = useCreateRecurring();
 
@@ -61,6 +76,7 @@ export default function RecurringSlotsScreen() {
         dayOfWeek: dayOfWeek!,
         slotTime: selectedSlot!,
         frequency: frequency!,
+        ...(startDate && { startDate }),
       },
       {
         onSuccess: () => {
@@ -102,6 +118,7 @@ export default function RecurringSlotsScreen() {
                 key={dow}
                 onPress={() => {
                   setDayOfWeek(dow);
+                  setStartDate(null);
                   setSelectedSlot(null);
                   setFrequency(null);
                 }}
@@ -131,9 +148,85 @@ export default function RecurringSlotsScreen() {
           })}
         </ScrollView>
 
-        {/* Step 2: Time slot */}
+        {/* Step 2: Start date */}
         {dayOfWeek !== undefined && (
           <>
+            <Text className="text-[18px] font-bold text-ink tracking-[-0.3px] mb-[2px]">
+              Start from
+            </Text>
+            <Text className="text-[14px] text-secondary mb-4">
+              When should the series begin?
+            </Text>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerClassName="gap-[8px] pb-2"
+              className="mb-6"
+            >
+              <Pressable
+                onPress={() => {
+                  setStartDate(null);
+                  setSelectedSlot(null);
+                  setFrequency(null);
+                }}
+                accessibilityRole="button"
+                accessibilityState={{ selected: startDate === null }}
+                accessibilityLabel="Soonest available"
+                style={{
+                  borderWidth: startDate === null ? 2 : 1,
+                  borderColor: startDate === null ? colors.badgeRecurring : colors.separatorOpaque,
+                  backgroundColor: startDate === null ? colors.badgeRecurring : colors.card,
+                  paddingVertical: 10,
+                  paddingHorizontal: 16,
+                  borderRadius: 20,
+                  alignItems: 'center',
+                }}
+                className="active:opacity-70"
+              >
+                <Text
+                  style={{ color: startDate === null ? colors.white : colors.ink }}
+                  className="text-[13px] font-bold"
+                >
+                  Soonest
+                </Text>
+              </Pressable>
+              {upcomingDates.map(({ date, dateStr }) => {
+                const isSel = startDate === dateStr;
+                return (
+                  <Pressable
+                    key={dateStr}
+                    onPress={() => {
+                      setStartDate(dateStr);
+                      setSelectedSlot(null);
+                      setFrequency(null);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSel }}
+                    accessibilityLabel={date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                    style={{
+                      borderWidth: isSel ? 2 : 1,
+                      borderColor: isSel ? colors.badgeRecurring : colors.separatorOpaque,
+                      backgroundColor: isSel ? colors.badgeRecurring : colors.card,
+                      paddingVertical: 10,
+                      paddingHorizontal: 16,
+                      borderRadius: 20,
+                      alignItems: 'center',
+                    }}
+                    className="active:opacity-70"
+                  >
+                    <Text
+                      style={{ color: isSel ? colors.white : colors.ink }}
+                      className="text-[13px] font-bold"
+                    >
+                      {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+
+            {/* Step 3: Time slot */}
             <Text className="text-[18px] font-bold text-ink tracking-[-0.3px] mb-[2px]">
               Pick a time
             </Text>
@@ -213,7 +306,7 @@ export default function RecurringSlotsScreen() {
                   })}
                 </View>
 
-                {/* Step 3: Frequency */}
+                {/* Step 4: Frequency */}
                 {selectedSlot && (
                   <>
                     <Text className="text-[18px] font-bold text-ink tracking-[-0.3px] mb-[2px]">

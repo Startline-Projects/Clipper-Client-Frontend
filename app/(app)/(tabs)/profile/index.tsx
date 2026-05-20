@@ -81,7 +81,7 @@ export default function ProfileScreen() {
   if (isLoading || !isAuthenticated) return <ProfileSkeleton />;
 
   if (isError || !profile) {
-    if ((error as Record<string, unknown>)?.sessionExpired) return <ProfileSkeleton />;
+    if ((error as unknown as Record<string, unknown>)?.sessionExpired) return <ProfileSkeleton />;
     return <ErrorView error={error} onRetry={refetch} />;
   }
 
